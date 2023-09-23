@@ -1,0 +1,5 @@
+[api_keys]
+GitHub = "your_github_key_here"
+BeVigil = "your_bevigil_key_here"
+Censys = "your_censys_key_here"
+C99 = "your_c99_key_here"
