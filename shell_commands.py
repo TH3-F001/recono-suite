@@ -9,7 +9,7 @@ from common import get_api_keys
 import json
 
 class ShellCommand:
-    def __init__(self, domain, output_dir, config_file):
+    def __init__(self, domain, output_dir, config_file=None):
         self.domain = domain
         self.out_dir = f'{output_dir}/'
         self.asn = self.get_asn()

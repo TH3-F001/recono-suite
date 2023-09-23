@@ -1,9 +1,11 @@
 from shell_commands import ShellCommand
 from output_parser import *
-
+import os
 
 output_directory = '/home/hanzo/Downloads/script_output'
-cmd = ShellCommand('lacity.gov',output_directory)
+config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.toml")
+cmd = ShellCommand('lacity.gov',output_directory, config_file)
+
 cmd.crt_sh()
 subfinder_file = f'{output_directory}/subfinder_lacity.gov.json'
 knockpy_file = f'{output_directory}/knockpy'

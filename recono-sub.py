@@ -38,7 +38,7 @@ def extract_domains_from_input(args):
 
 
 def run_shell_commands_against_domain(domain, output_directory):
-    shell_cmd = ShellCmd(domain, output_directory)
+    shell_cmd = ShellCmd(domain, output_directory, config_file=config_file)
 
     threads = [
         Thread(target=shell_cmd.amass),
