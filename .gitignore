@@ -3,5 +3,5 @@ __pycache__
 .idea
 venv
 old
-#make sure example stays in
+#make sure example stays ino
 !example-config.toml
