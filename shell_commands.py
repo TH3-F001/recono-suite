@@ -9,11 +9,11 @@ from common import get_api_keys
 import json
 
 class ShellCommand:
-    def __init__(self, domain, output_dir, config_file=None):
+    def __init__(self, domain, output_dir, api_keys):
         self.domain = domain
         self.out_dir = f'{output_dir}/'
         self.asn = self.get_asn()
-        self.api_keys = get_api_keys(config_file=config_file)
+        self.api_keys = get_api_keys(config_file=api_keys)
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.wordlist_path = os.path.join(script_dir, 'wordlists', 'subdomain_master.txt')
         os.makedirs(os.path.dirname(self.out_dir), exist_ok=True)
@@ -79,7 +79,7 @@ class ShellCommand:
         self._run(cmd)
 
     def knockpy(self):
-        out_path = f'{self.out_dir}/knockpy'
+        out_path = f'{self.out_dir}/knockpy_{self.domain}'
         cmd = f'knockpy {self.domain} --no-http-code 404 -o {out_path}'
         self._run(cmd)
 

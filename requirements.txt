@@ -1,12 +1,4 @@
 requests
-os
-subprocess
-time
-argparse
-hashlib
-multiprocessing
-threading
 bbot
 bs4
-glob
 toml

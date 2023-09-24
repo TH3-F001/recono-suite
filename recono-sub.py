@@ -1,13 +1,15 @@
 import argparse
 import os
-import hashlib
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 from threading import Thread
 import common
+import output_parser
 from shell_commands import ShellCommand as ShellCmd
 
-processed_domain_hashes = set()
-config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.toml")
+manager = Manager()
+found_domain_results = manager.dict()
+config_file = os.path.expanduser("~/.config/recono-suite/config.toml")
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run recon tools with multiprocessing and threading.")
@@ -37,12 +39,25 @@ def extract_domains_from_input(args):
     return domains
 
 
-def run_shell_commands_against_domain(domain, output_directory):
-    shell_cmd = ShellCmd(domain, output_directory, config_file=config_file)
+def run_shell_commands_against_domain(domain, output_directory, api_keys):
+    shell_cmd = ShellCmd(domain, output_directory, api_keys)
 
+    if found_domain_results.get(domain, False):
+        print(f'{domain} has already been processed, Skipping...')
+        return
     threads = [
+        Thread(target=shell_cmd.gobuster),
         Thread(target=shell_cmd.amass),
+        Thread(target=shell_cmd.bbot),
         Thread(target=shell_cmd.subfinder),
+        Thread(target=shell_cmd.subscraper),
+        Thread(target=shell_cmd.subdomainizer),
+        Thread(target=shell_cmd.knockpy),
+        Thread(target=shell_cmd.assetfinder),
+        Thread(target=shell_cmd.shodan),
+        Thread(target=shell_cmd.github_subdomains),
+        Thread(target=shell_cmd.c99_subdomain_finder),
+        Thread(target=shell_cmd.crt_sh)
     ]
 
     for thread in threads:
@@ -51,49 +66,30 @@ def run_shell_commands_against_domain(domain, output_directory):
     for thread in threads:
         thread.join()
 
-############################################################
-def hash_domain(domain):
-    return hashlib.md5(domain.encode()).hexdigest()
+    found_domain_results[domain] = True
 
 
-def is_new_domain(domain):
-    domain_hash = hash_domain(domain)
-    if domain_hash in processed_domain_hashes:
-        return False
-    processed_domain_hashes.add(domain_hash)
-    return True
-
-
-def gather_new_domain_output(output_directory):
-    #Parse output files and return list of new domains
-
-
-def recursive_recon(domains, output_directory):
-    new_domains = domains
-    while new_domains:
-        new_domains = run_recon(new_domains, output_directory)
-        new_domains = gather_new_domain_output(output_directory)
-###########################################################################
-
-
-def run_recon(domains, output_directory):
-    # Should return list of all found domains, so we'll need to throw our output parsing in here
+def run_recon(domains, output_directory, api_keys):
     with Pool() as pool:
-        cmd_args = []
-        for domain in domains:
-            cmd_args.append((domain, output_directory))
-
+        cmd_args = [(domain, output_directory, api_keys) for domain in domains]
         pool.starmap(run_shell_commands_against_domain, cmd_args)
 
+    new_found_domains = output_parser.get_all_output(output_directory, domains)
+
+    for domain in new_found_domains:
+        if domain not in found_domain_results:
+            found_domain_results[domain] = False
+
+    return dict(found_domain_results)
 
 
 def main():
     args = parse_args()
+    api_keys = common.get_api_keys(config_file)
     domains = extract_domains_from_input(args)
     output_directory = args.output
 
-    run_recon()
-
+    run_recon(domains, output_directory, api_keys)
 
     print(f"Output directory: {output_directory}")
     print(f"Domains: {domains}")
