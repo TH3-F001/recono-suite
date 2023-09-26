@@ -1,13 +1,26 @@
+import common
 from shell_commands import ShellCommand
 from output_parser import *
 import os
 
 output_directory = '/home/hanzo/Downloads/script_output'
 config_file = os.path.expanduser("~/.config/recono-suite/config.toml")
+api_keys = common.get_api_keys(config_file)
+cmd = ShellCommand('lacity.gov', output_directory, api_keys, None)
 
-cmd = ShellCommand('lacity.gov', output_directory, config_file)
-cmd.c99_subdomain_finder()
-#cmd.crt_sh()
+# cmd.gobuster()
+# cmd.amass()
+# cmd.bbot()
+# cmd.subfinder()
+# cmd.subscraper()
+# cmd.subdomainizer()
+# cmd.knockpy()
+# cmd.assetfinder()
+# cmd.shodan()
+# cmd.github_subdomains()
+# cmd.c99_subdomain_finder()
+cmd.crt_sh()
+
 # subfinder_file = f'{output_directory}/subfinder_lacity.gov.json'
 # knockpy_file = f'{output_directory}/knockpy'
 # amass_file = f'{output_directory}/amass_lacity.gov.json'
@@ -20,8 +33,8 @@ cmd.c99_subdomain_finder()
 # crt_output = crt_output_to_set(crt_file)
 # c99_output = c99_output_to_set(c99_file)
 
-for domain in get_all_output(output_directory, 'lacity.gov'):
-    print(domain)
+# for domain in get_all_output(output_directory, 'lacity.gov'):
+#     print(domain)
 # json_generated_outputs = {'Subfinder': subfinder_output, 'Knockpy': knockpy_output, 'Amass': amass_output, 'CRT.sh': crt_output}
 # json_generated_outputs = {'Amass': amass_output}
 # json_generated_outputs = {'CRT.sh': crt_output}

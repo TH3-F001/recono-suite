@@ -1,6 +1,0 @@
-config.toml
-__pycache__
-.idea
-venv
-old
-!example-config.toml

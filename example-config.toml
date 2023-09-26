@@ -1,5 +1,8 @@
 [api_keys]
-GitHub = "your_github_key_here"
-BeVigil = "your_bevigil_key_here"
-Censys = "your_censys_key_here"
-C99 = "your_c99_key_here"
+  GitHub = "GITHUB_API_KEY"
+  BeVigil = "BEVIGIL_API_KEY"
+  C99 = "C99_API_KEY"
+  Shodan = "SHODAN_API_KEY"
+  [api_keys.Censys]
+    ID = "CENSYS_API_ID"
+    Secret = "CENSYS_API_SECRET"
