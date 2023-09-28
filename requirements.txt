@@ -2,7 +2,8 @@ requests
 bs4
 toml
 shodan
-
+zipfile
+shutil
 
 termcolor==1.1.0
 argparse==1.4.0
