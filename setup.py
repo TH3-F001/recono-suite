@@ -7,6 +7,7 @@ import toml
 import subprocess
 import requests
 import shutil
+import distro
 from zipfile import ZipFile
 from setuptools import setup, find_packages
 
@@ -48,8 +49,19 @@ def initialize_file_structure_requirements():
     global config_file
     global executable_dir
 
+    profile_path = os.path.expanduser('~/.profile')
+    path_line = f'export PATH="$PATH:{executable_dir}'
+    current_path_var = os.environ.get('PATH','').split(':')
+
     os.makedirs(config_dir, exist_ok=True)
     os.makedirs(executable_dir, exist_ok=True)
+
+    if executable_dir not in current_path_var:
+        with open(profile_path, 'a') as profile_file:
+            profile_file.write*f'\n{path_line}'
+
+        os.environ['PATH'] += f':{executable_dir}'
+        print(f"Added {executable_dir} to PATH in {profile_path}")
 
     config = {}
     api_keys = common.get_api_keys(config_file)
@@ -61,6 +73,8 @@ def initialize_file_structure_requirements():
 
 
 # region Utility Functions
+
+
 def shell_command_is_installed(cmd):
     try:
         subprocess.run([cmd, '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -71,16 +85,57 @@ def shell_command_is_installed(cmd):
         return False
 
 
+def get_shell_install_cmd(package):
+    current_distro = distro.name()[0]
+    install_cmd = ''
+    package_manager_commands = {
+        'Alpine': 'sudo apk add',
+        'Arch': 'sudo pacman -S',
+        'CentOS': 'sudo yum install',
+        'Clear Linux': 'sudo swupd bundle-add',
+        'Debian': 'sudo apt-get install',
+        'Fedora': 'sudo dnf install',
+        'Gentoo': 'sudo emerge',
+        'Mageia': 'sudo urpmi',
+        'Manjaro': 'sudo pacman -S',
+        'openSUSE': 'sudo zypper install',
+        'RedHat': 'sudo yum install',
+        'Slackware': 'sudo slackpkg install',
+        'Solus': 'sudo eopkg it',
+        'Ubuntu': 'sudo apt install',
+        'Void Linux': 'sudo xbps-install -S'
+    }
+    try:
+        install_cmd = package_manager_commands[current_distro]
+    except KeyError:
+        print('ERROR: Cannot determine linux distro. Are you using Windows you pleeb?')
+
+    return install_cmd
+
+
 def get_latest_github_release(releases_url, name):
     download_url = ''
     response = requests.get(releases_url)
     if response.status_code == 200:
         releases = response.json()
+        print(type(releases))
         if releases:
-            latest_release = releases[0]
-            for asset in latest_release['assets']:
-                if name in asset['name']:
-                    download_url = asset['browser_download_url']
+            if isinstance(releases, list):
+                latest_release = releases[0]
+                # print(latest_release)
+                for asset in latest_release['assets']:
+                    if name in asset['name']:
+                        download_url = asset['browser_download_url']
+            # elif isinstance(releases, dict):
+            #     for key in releases:
+            #         if isinstance(releases[key], dict):
+            #             print(f'\n\n{key}\n\t{releases[key]}')
+            #     # for asset in releases['assets']:
+            #     #     if name in asset['name']:
+            #     #         download_url = asset['browser_download_url']
+            else:
+                print(f'ERROR: A problem ocurred while trying to find the latest release at {releases_url}:\n'
+                      f'Response is neither dictionary nor list')
 
     if not download_url:
         print(f'ERROR: A problem occurred while trying to find the latest release at {releases_url}')
@@ -139,12 +194,29 @@ def install_from_github(url, extension, binary_name):
         return True
     except FileNotFoundError:
         print(f'ERROR: {binary_name} Binary is not in expected location. Please check your downloads folder and install binary to {executable_dir} manually.')
+
+def install_shell_package(pkg):
+    cmd = get_shell_install_cmd(pkg)
+    try:
+        result = subprocess.run(cmd.split(), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f'Successfully Installed {pkg}')
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f'ERROR: Something went wrong while installing {pkg}')
+        print(f"Error message: {e.stderr.decode('utf-8')}")
+        return False
+
+
 # endregion
 
 
 #region Installation Checkers
 def pipx_is_installed():
     return shell_command_is_installed('pipx')
+
+
+def go_is_intsalled():
+    return shell_command_is_installed('go')
 
 
 def bbot_is_installed():
@@ -193,6 +265,10 @@ def install_pipx():
         return False
 
 
+def install_go():
+    return install_shell_package('go')
+
+
 def install_bbot():
     try:
         subprocess.run(['pipx', 'install', 'bbot'])
@@ -212,7 +288,8 @@ def install_gobuster():
 
 
 def install_subfinder():
-    pass
+    url = get_latest_github_release('https://api.github.com/repos/projectdiscovery/subfinder', 'linux_amd64.zip')
+    return install_from_github(url, 'zip', 'subfinder')
 
 
 def install_subscraper():
@@ -247,8 +324,9 @@ def install_shell_tools():
 
 def main():
     # initialize_file_structure_requirements()
-    install_gobuster()
-    install_amass()
-
+    # install_gobuster()
+    # install_amass()
+    # install_subfinder()
+    print(distro.name())
 if __name__ == '__main__':
     main()

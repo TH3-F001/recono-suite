@@ -4,6 +4,7 @@ toml
 shodan
 zipfile
 shutil
+distro
 
 termcolor==1.1.0
 argparse==1.4.0
