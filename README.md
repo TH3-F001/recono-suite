@@ -16,4 +16,4 @@
     python setup.py
     # this will eventually be replaced by an install.sh script which does everything along with 
     # creating the virtual environment. For now... I just want to enumerate some subdomains man.
-
+    # I'm happy with what I have. But I know it could be MUCH better
