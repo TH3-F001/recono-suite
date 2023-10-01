@@ -2,8 +2,6 @@ requests
 bs4
 toml
 shodan
-zipfile
-shutil
 distro
 
 termcolor==1.1.0

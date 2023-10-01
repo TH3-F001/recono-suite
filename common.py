@@ -1,5 +1,6 @@
 import os
 import subprocess
+import traceback
 
 import toml
 from bs4 import BeautifulSoup
@@ -62,7 +63,15 @@ def get_asn(domain):
         return asn
 
 
-def _run(cmd):
+def handle_error(message: str, exception: Exception=None, ret: bool=True, prefix: str='ERROR'):
+    print(f'[{prefix}]: {message}')
+    if exception:
+        traceback.print_exc()
+        ret = False
+    return ret
+
+
+def run(cmd):
     command = cmd.split(' ')
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return result.stdout.decode('utf-8'), result.stderr.decode('utf-8')
