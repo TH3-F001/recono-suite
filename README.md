@@ -1,19 +1,38 @@
 # recono-suite
 
-## Install:
-    Note that at this time this has only been tested with fedora. I want to set it up so it's
-    running from a Virtual Environment in the ~/.config/recono-suite directory, but right now
-    I simply Lack the Patience.
+## Disclaimer:
+At this time the project and the install process have only been tested on Fedora 27. I do plan to do more testing in the
+future.
 
-### Clone the repository and enter the directory:
+## Install:
+
+### 1) Clone the repository and enter the directory:
     git clone git@github.com:TH3-F001/recono-suite.git
     cd recono-suite
 
-### Install setup.py requirements:
-    pip install -r requirements.txt
+### 2) Give install.sh executable privileges:
+    chmod +x install.sh
 
-### Run the setup.py script (requires python 3.10 or higher)
-    python setup.py
-    # this will eventually be replaced by an install.sh script which does everything along with 
-    # creating the virtual environment. For now... I just want to enumerate some subdomains man.
-    # I'm happy with what I have. But I know it could be MUCH better
+### 3) run install.sh (requires python 3.10 or higher):
+    ./install.sh
+
+### 4) provide your API keys when prompted.
+You'll be prompted for the following API Keys:
+GitHub
+Bevigil
+C99
+Shodan
+Censys
+
+### 5) Provide sudo credentials to install dependencies:
+The following shell tools are required to run this tool:
+>amass
+assetfinder
+bbot
+gobuster
+github-subdomains
+knockpy
+shodan
+subfinder
+subscraper
+subdomainizer
