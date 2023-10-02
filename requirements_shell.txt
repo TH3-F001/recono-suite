@@ -1,7 +1,0 @@
-amass
-subfinder
-knockpy
-shodan
-gobuster
-bbot
-tarfile
