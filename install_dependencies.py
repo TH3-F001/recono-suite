@@ -13,6 +13,7 @@ from zipfile import ZipFile
 
 
 config_dir = os.path.expanduser('~/.config/recono-suite')
+go_bin_path = os.path.expanduser('~/go/bin')
 executable_dir = os.path.expanduser('~/.local/bin')
 downloads_dir = os.path.expanduser('~/Downloads')
 config_file = os.path.join(config_dir, 'config.toml')
@@ -35,12 +36,16 @@ def initialize_file_structure_requirements():
         'amass':os.path.join(executable_dir, 'amass'),
         'bbot':os.path.join(executable_dir, 'bbot'),
         'gobuster':os.path.join(executable_dir, 'gobuster'),
-        'subfinder':os.path.join(executable_dir, 'subfinder'),
+        'subfinder':os.path.join(go_bin_path, 'subfinder'),
         'subscraper':os.path.join(executable_dir, 'subscraper', 'subscraper.py'),
         'subdomainizer':os.path.join(executable_dir, 'subdomainizer', 'SubDomainizer.py'),
         'knockpy':os.path.join(executable_dir, 'knockpy', 'knockpy.py'),
-        'assetfinder':os.path.join(executable_dir, 'assetfinder'),
-        'github-subdomains':os.path.join(executable_dir, 'github-subdomains')
+        'assetfinder':os.path.join(go_bin_path, 'assetfinder'),
+        'github-subdomains':os.path.join(go_bin_path, 'github-subdomains'),
+        'waybackurls': os.path.join(go_bin_path, 'waybackurls'),
+        'hakrawler': os.path.join(go_bin_path, 'hakrawler'),
+        'shosubgo': os.path.join(go_bin_path, 'shosubgo'),
+
     }
 
     if os.path.exists(config_dir):
@@ -209,7 +214,7 @@ def install_shell_package(pkg):
         return handle_error(f'Something went wrong while installing {pkg}', exception=e)
 
 
-def go_install(pkg, override=''):
+def go_install(pkg, tool_name, override=''):
     if override:
         cmd = f'go {override} {pkg}'.split()
     else:
@@ -252,18 +257,10 @@ def install_amass():
 
 def install_assetfinder():
     url = 'github.com/tomnomnom/assetfinder'
-    go_bin_path = os.path.expanduser('~/go/bin')
-    assetfinder_gopath = os.path.join(go_bin_path, 'assetfinder')
     out_path = configuration['binary_paths']['assetfinder']
-    if go_install(url, override='get -u'):
-        try:
-            shutil.copy(assetfinder_gopath, out_path)
-            print(f'AssetFinder successfully installed to {out_path}')
-            return True
-        except FileNotFoundError as e:
-            return handle_error(f'AssetFinder {assetfinder_gopath} does not exist. check GOPATH', exception=e)
-        except Exception as e:
-            return handle_error(f'Problem ocurred while installing AssetFinder', e)
+    if go_install(url, override='get -u') and os.path.exists(out_path):
+        print(f'AssetFinder successfully installed to {out_path}')
+        return True
     else:
         return False
 
@@ -280,18 +277,10 @@ def install_bbot():
 
 def install_github_subdomains():
     url = 'github.com/gwen001/github-subdomains@latest'
-    go_bin_path = os.path.expanduser('~/go/bin')
-    github_subdomains_gopath = os.path.join(go_bin_path, 'github-subdomains')
     out_path = configuration['binary_paths']['github-subdomains']
-    if go_install(url):
-        try:
-            shutil.copy(github_subdomains_gopath, out_path)
-            print(f'Github-Subdomains successfully installed to {out_path}')
-            return True
-        except FileNotFoundError as e:
-            return handle_error(f'Github-Subdomains {github_subdomains_gopath} does not exist. check GOPATH')
-        except Exception as e:
-            return handle_error('Problem ocurred while installing Github-Subdomains')
+    if go_install(url) and os.path.exists(out_path):
+        print(f'Github-Subdomains successfully installed to {out_path}')
+        return True
     else:
         return False
 
@@ -303,6 +292,16 @@ def install_gobuster():
         return True
     else:
         return handle_error('Problem occurred while installing Gobuster', ret=False)
+
+
+def install_hakrawler():
+    url = 'github.com/hakluke/hakrawler@latest'
+    out_path = configuration['binary_paths']['hakrawler']
+    if go_install(url) and os.path.exists(out_path):
+        print(f'Hakrawler successfully installed to {out_path}')
+        return True
+    else:
+        return False
 
 
 def install_knockpy():
@@ -326,6 +325,16 @@ def install_knockpy():
         return handle_error(f'Problem ocurred while installing Knockpy', exception=e)
 
 
+def install_shosubgo():
+    url = 'github.com/incogbyte/shosubgo@latest'
+    out_path = configuration['binary_paths']['shosubgo']
+    if go_install(url) and os.path.exists(out_path):
+        print(f'Shosubgo successfully installed to {out_path}')
+        return True
+    else:
+        return False
+
+
 def install_subdomainizer():
     url = 'https://github.com/nsonaniya2010/SubDomainizer.git'
     name = 'subdomainizer'
@@ -345,18 +354,10 @@ def install_subdomainizer():
 
 def install_subfinder():
     url = 'github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest'
-    go_bin_path = os.path.expanduser('~/go/bin')
-    subfinder_gopath = os.path.join(go_bin_path, 'subfinder')
     out_path = configuration['binary_paths']['subfinder']
-    if go_install(url):
-        try:
-            shutil.copy(subfinder_gopath, out_path)
-            print(f'SubFinder successfully installed to {out_path}')
-            return True
-        except FileNotFoundError as e:
-            return handle_error(f'Subfinder source file does not exist. check GOPATH', exception=e)
-        except Exception as e:
-            return handle_error('ERROR: Problem ocurred while installing subfinder')
+    if go_install(url) and os.path.exists(out_path):
+        print(f'SubFinder successfully installed to {out_path}')
+        return True
     else:
         return False
 
@@ -377,6 +378,15 @@ def install_subscraper():
     except Exception as e:
         return handle_error(f'Problem ocurred while installing SubScraper', exception=e)
 
+
+def install_waybackurls():
+    url = 'github.com/tomnomnom/waybackurls@latest'
+    out_path = configuration['binary_paths']['waybackurls']
+    if go_install(url) and os.path.exists(out_path):
+        print(f'Waybackurls successfully installed to {out_path}')
+        return True
+    else:
+        return False
 
 
 def check_and_install(cmd, install_function, override=None):

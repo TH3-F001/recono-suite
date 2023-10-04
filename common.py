@@ -37,9 +37,11 @@ def get_api_keys(config_file=None):
                 'Secret': os.environ.get('API_CENSYS_ID') or input('Please provide your Censys API secret:\n> ')
             }
         }
-
     return api_keys
 
+
+def get_config(config_file):
+    return toml.load(config_file)
 
 def get_asn(domain):
     url = f'https://www.robtex.com/dns-lookup/{domain}#records'
@@ -61,6 +63,8 @@ def get_asn(domain):
         print(f'ASN for {domain} not found.')
         asn = None
         return asn
+
+
 
 
 def handle_error(message: str, exception: Exception=None, ret: bool=True, prefix: str='ERROR'):

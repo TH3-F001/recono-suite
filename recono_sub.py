@@ -16,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run recon tools with multiprocessing and threading.")
 
     parser.add_argument('-o', '--output', help='Output directory', required=True)
-    parser.add_argument('-aF', '--api-file', help='Alternative API file. (see example-config.toml', required=False)
+    parser.add_argument('-cF', '--config-file', help='Alternative config file. (see example-config.toml', required=False)
     domain_group = parser.add_mutually_exclusive_group(required=True)
     domain_group.add_argument('-d', '--domain', help='Single domain or comma-separated list of domains to process',
                               default=None)
@@ -40,8 +40,8 @@ def extract_domains_from_input(args):
     return domains
 
 
-def run_shell_commands_against_domain(domain, output_directory, api_keys, found_domains, asn):
-    shell_cmd = ShellCmd(domain, output_directory, api_keys, asn)
+def run_shell_commands_against_domain(domain, output_directory, config, found_domains, asn):
+    shell_cmd = ShellCmd(domain, output_directory, config, asn)
 
     if found_domains.get(domain, False):
         print(f'{domain} has already been processed, Skipping...')
@@ -75,9 +75,9 @@ def run_shell_commands_against_domain(domain, output_directory, api_keys, found_
     found_domains[domain] = True
 
 
-def run_recon(domains, output_directory, api_keys, found_domains, asn_info):
+def run_recon(domains, output_directory, config, found_domains, asn_info):
     with Pool() as pool:
-        cmd_args = [(domain, output_directory, api_keys, found_domains, asn_info[domain]) for domain in domains]
+        cmd_args = [(domain, output_directory, config, found_domains, asn_info[domain]) for domain in domains]
         pool.starmap(run_shell_commands_against_domain, cmd_args)
 
     new_found_domains = output_parser.get_all_output(output_directory, domains)
@@ -92,9 +92,9 @@ def main():
     global config_file
     args = parse_args()
 
-    if args.api_file:
-        config_file = args.api_file
-    api_keys = common.get_api_keys(config_file)
+    if args.config:
+        config_file = args.config_file
+    config = common.get_config(config_file)
     domains = extract_domains_from_input(args)
     output_directory = args.output
 
@@ -103,7 +103,7 @@ def main():
         asn = common.get_asn(domain)
         asn_info[domain] = asn
 
-    flat_results = run_recon(domains, output_directory, api_keys, found_domain_results, asn_info)
+    flat_results = run_recon(domains, output_directory, config, found_domain_results, asn_info)
 
     # Write the results to a file in the output directory
     with open(os.path.join(output_directory, 'flat_results.txt'), 'w') as f:
