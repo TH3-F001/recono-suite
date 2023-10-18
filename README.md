@@ -13,7 +13,7 @@ found
 - Bbot
 - C99
 - crt.sh
-- GoBuster
+- ShuffleDNS
 - Github-Subdomains
 - Hakrawler
 - Knockpy
