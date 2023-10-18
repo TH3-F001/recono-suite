@@ -1,48 +1,33 @@
 import common
-from shell_commands import ShellCommand
+import output_parser
+from subdomain_tools import SubdomainRunner
 from output_parser import *
 import os
 
 output_directory = '/home/hanzo/Downloads/script_output'
+output_file = '/home/hanzo/Downloads/script_output/master_out.txt'
+domains = common.get_lines_from_file('/home/hanzo/Downloads/test.txt')
 config_file = os.path.expanduser("~/.config/recono-suite/config.toml")
-api_keys = common.get_api_keys(config_file)
-cmd = ShellCommand('lacity.gov', output_directory, api_keys, None)
+config = common.get_config(config_file)
 
-# cmd.gobuster()
+cmd = SubdomainRunner(domains, output_directory, config)
+
 # cmd.amass()
-# cmd.bbot()
-# cmd.subfinder()
-# cmd.subscraper()
-# cmd.subdomainizer()
-# cmd.knockpy()
 # cmd.assetfinder()
-# cmd.shodan()
-# cmd.github_subdomains()
+# cmd.bbot()
 # cmd.c99_subdomain_finder()
-cmd.crt_sh()
+# cmd.crt_sh()
+# cmd.github_subdomains()
+# cmd.hakrawler()
+# cmd.knockpy()
+# cmd.shosubgo()
+# cmd.subdomainizer()
+# cmd.subfinder()
+# cmd.waybackurls()
+# #
+results = sorted(output_parser.get_all_output(output_directory))
+with open(output_file, 'w') as file:
+    for result in results:
+        file.write(f'{str(result).strip(".")}\n')
 
-# subfinder_file = f'{output_directory}/subfinder_lacity.gov.json'
-# knockpy_file = f'{output_directory}/knockpy'
-# amass_file = f'{output_directory}/amass_lacity.gov.json'
-# crt_file = f'{output_directory}/crt-sh_lacity.gov.json'
-# c99_file = f'{output_directory}/c99_lacity.gov.txt'
-#
-# subfinder_output = subfinder_output_to_set(subfinder_file)
-# knockpy_output = knockpy_output_to_set(knockpy_file)
-# amass_output = amass_output_to_set(amass_file)
-# crt_output = crt_output_to_set(crt_file)
-# c99_output = c99_output_to_set(c99_file)
-
-# for domain in get_all_output(output_directory, 'lacity.gov'):
-#     print(domain)
-# json_generated_outputs = {'Subfinder': subfinder_output, 'Knockpy': knockpy_output, 'Amass': amass_output, 'CRT.sh': crt_output}
-# json_generated_outputs = {'Amass': amass_output}
-# json_generated_outputs = {'CRT.sh': crt_output}
-
-# for cmd_name, output in json_generated_outputs.items():
-#     print(f'\n{cmd_name}:')
-#     print(output)
-#     print(len(output))
-#     for domain in output:
-#         print(domain)
 

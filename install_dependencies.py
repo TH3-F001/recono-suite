@@ -8,6 +8,8 @@ import requests
 import shutil
 import distro
 import sys
+
+import common
 from common import handle_error, get_api_keys
 from zipfile import ZipFile
 
@@ -33,19 +35,21 @@ def initialize_file_structure_requirements():
     recon_dir = os.path.join(config_dir, 'recono-suite')
     configuration['api_keys'] = api_keys
     configuration['binary_paths'] = {
-        'amass':os.path.join(executable_dir, 'amass'),
-        'bbot':os.path.join(executable_dir, 'bbot'),
-        'gobuster':os.path.join(executable_dir, 'gobuster'),
-        'subfinder':os.path.join(go_bin_path, 'subfinder'),
-        'subscraper':os.path.join(executable_dir, 'subscraper', 'subscraper.py'),
-        'subdomainizer':os.path.join(executable_dir, 'subdomainizer', 'SubDomainizer.py'),
-        'knockpy':os.path.join(executable_dir, 'knockpy', 'knockpy.py'),
-        'assetfinder':os.path.join(go_bin_path, 'assetfinder'),
-        'github-subdomains':os.path.join(go_bin_path, 'github-subdomains'),
-        'waybackurls': os.path.join(go_bin_path, 'waybackurls'),
+        'amass': os.path.join(executable_dir, 'amass'),
+        'assetfinder': os.path.join(go_bin_path, 'assetfinder'),
+        'bbot': os.path.join(executable_dir, 'bbot'),
+        'github-subdomains': os.path.join(go_bin_path, 'github-subdomains'),
         'hakrawler': os.path.join(go_bin_path, 'hakrawler'),
+        'knockpy': os.path.join(executable_dir, 'knockpy', 'knockpy.py'),
         'shosubgo': os.path.join(go_bin_path, 'shosubgo'),
-
+        'shuffledns': os.path.join(go_bin_path,'shuffledns'),
+        'subdomainizer': os.path.join(executable_dir, 'subdomainizer', 'SubDomainizer.py'),
+        'subfinder': os.path.join(go_bin_path, 'subfinder'),
+        'waybackurls': os.path.join(go_bin_path, 'waybackurls'),
+    }
+    configuration['wordlists'] = {
+        'resolver_file': os.path.join(config_dir, 'wordlists', 'resolvers.txt'),
+        'subdomain_wordlist': os.path.join(config_dir, 'wordlists', 'subdomain_master.txt')
     }
 
     if os.path.exists(config_dir):
@@ -54,7 +58,20 @@ def initialize_file_structure_requirements():
     os.makedirs(executable_dir, exist_ok=True)
     os.makedirs(config_dir)
 
+    # Move Wordlists into config_dir
+    source_wordlists_path = os.path.join(script_root, 'wordlists')
+    destination_wordlists_path = os.path.join(config_dir, 'wordlists')
+    if os.path.exists(destination_wordlists_path):
+        print(f'{destination_wordlists_path} already exists')
+        shutil.rmtree(destination_wordlists_path)
+    else:
+        shutil.copytree(source_wordlists_path, destination_wordlists_path)
+        print(f'Copied wordlists to {destination_wordlists_path}')
 
+    # Initialize resolver file
+    common.update_resolver_list(configuration)
+
+    # Make sure executable_dir is in path
     if executable_dir not in current_path_var:
         try:
             with open(profile_path, 'a') as profile_file:
@@ -65,6 +82,7 @@ def initialize_file_structure_requirements():
         except Exception as e:
             handle_error(f'Could not add {executable_dir} to $PATH.', exception=e, prefix='Warning')
 
+    # Create config file
     with open(config_file, 'w') as file:
         toml.dump(configuration, file)
     os.chmod(config_file, 0o600)
@@ -75,7 +93,7 @@ def initialize_file_structure_requirements():
 #region Utility Functions
 def shell_command_is_installed(cmd, override=''):
     if override:
-        test_command = f'{cmd} {override}'.split()
+        test_command = override.split()
     else:
         test_command = f'{cmd} --version'.split()
     try:
@@ -191,8 +209,7 @@ def git_clone(url, name):
     cmd = f'git clone {url} {out_path}'.split()
 
     if os.path.exists(out_path):
-        rm_cmd = f'sudo rm -rf {out_path}'
-        subprocess.run(rm_cmd, check=True, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        shutil.rmtree(out_path)
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         os.chmod(configuration['binary_paths'][name], 0o755)
@@ -214,7 +231,7 @@ def install_shell_package(pkg):
         return handle_error(f'Something went wrong while installing {pkg}', exception=e)
 
 
-def go_install(pkg, tool_name, override=''):
+def go_install(pkg, override=''):
     if override:
         cmd = f'go {override} {pkg}'.split()
     else:
@@ -256,9 +273,9 @@ def install_amass():
 
 
 def install_assetfinder():
-    url = 'github.com/tomnomnom/assetfinder'
+    url = 'github.com/tomnomnom/assetfinder@latest'
     out_path = configuration['binary_paths']['assetfinder']
-    if go_install(url, override='get -u') and os.path.exists(out_path):
+    if go_install(url) and os.path.exists(out_path):
         print(f'AssetFinder successfully installed to {out_path}')
         return True
     else:
@@ -285,15 +302,6 @@ def install_github_subdomains():
         return False
 
 
-def install_gobuster():
-    url = get_latest_github_release('https://api.github.com/repos/OJ/gobuster/releases', 'gobuster_Linux_x86_64.tar.gz')
-    if install_from_github(url, 'tar.gz', 'gobuster'):
-        print(f'Gobuster successfully installed to {configuration["binary_paths"]["gobuster"]}')
-        return True
-    else:
-        return handle_error('Problem occurred while installing Gobuster', ret=False)
-
-
 def install_hakrawler():
     url = 'github.com/hakluke/hakrawler@latest'
     out_path = configuration['binary_paths']['hakrawler']
@@ -315,7 +323,7 @@ def install_knockpy():
 
     try:
         git_clone(url, name)
-        print(f'Installing requirements at {prereq_file}')
+        print(f'Installing Knockpy requirements at {prereq_file}')
         subprocess.run(prereq_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         print(f'Running setup file {setup_file}')
         subprocess.run(setup_cmd, check=True, shell=True, cwd=os.path.dirname(out_path), stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
@@ -330,6 +338,16 @@ def install_shosubgo():
     out_path = configuration['binary_paths']['shosubgo']
     if go_install(url) and os.path.exists(out_path):
         print(f'Shosubgo successfully installed to {out_path}')
+        return True
+    else:
+        return False
+
+
+def install_shuffledns():
+    url = 'github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest'
+    out_path = configuration['binary_paths']['shuffledns']
+    if go_install(url) and os.path.exists(out_path):
+        print(f'ShuffleDNS successfully installed to {out_path}')
         return True
     else:
         return False
@@ -351,7 +369,6 @@ def install_subdomainizer():
         return handle_error(f'Problem ocurred while installing SubDomainizer.', exception=e)
 
 
-
 def install_subfinder():
     url = 'github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest'
     out_path = configuration['binary_paths']['subfinder']
@@ -360,23 +377,6 @@ def install_subfinder():
         return True
     else:
         return False
-
-
-def install_subscraper():
-    url = 'https://github.com/m8sec/subscraper.git'
-    name = 'subscraper'
-    out_path = configuration['binary_paths']['subscraper']
-
-    setup_file = os.path.join(os.path.dirname(out_path), 'setup.py')
-    setup_cmd = f'sudo python {setup_file} install'
-    try:
-        git_clone(url, name)
-        print(f'Running setup file {setup_file}')
-        subprocess.run(setup_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, shell=True)
-        print(f'SubScraper successfully installed to {out_path}')
-        return True
-    except Exception as e:
-        return handle_error(f'Problem ocurred while installing SubScraper', exception=e)
 
 
 def install_waybackurls():
@@ -402,17 +402,19 @@ def install_shell_tools():
 
     commands_to_check = [
         ('pipx', install_pipx, None),
-        ('go', install_go, 'version'),
+        ('go', install_go, 'go version'),
         ('amass', install_amass, None),
-        ('assetfinder', install_assetfinder, f'--subs-only {test_domain}'),
+        ('assetfinder', install_assetfinder, f'assetfinder --subs-only {test_domain}'),
         ('bbot', install_bbot, None),
         ('github-subdomains', install_github_subdomains,
-         f'-d {test_domain} -q -raw -t {configuration["api_keys"]["GitHub"]}'),
-        ('gobuster', install_gobuster, f'dns -d {test_domain} -w {test_wordlist}'),
+         f'github-subdomains -d {test_domain} -q -raw -t {configuration["api_keys"]["GitHub"]}'),
+        ('hakrawler', install_hakrawler, f'echo {test_domain} | hakrawler -d 1'),
         ('knockpy', install_knockpy, None),
+        ('shosubgo', install_shosubgo, f'shosubgo -d {test_domain} -s {configuration["api_keys"]["Shodan"]}'),
+        ('shuffledns', install_shuffledns, f'shuffledns -d {test_domain} -w {test_wordlist} -r {configuration["wordlists"]["resolver_file"]}'),
         ('subdomainizer', install_subdomainizer, None),
         ('subfinder', install_subfinder, None),
-        ('subscraper', install_subscraper, '-h')
+        ('waybackurls', install_waybackurls, None)
     ]
 
     required_commands = {}
@@ -426,7 +428,7 @@ def install_shell_tools():
 
 def main():
     initialize_file_structure_requirements()
-    # install_shell_tools()
+    install_shell_tools()
 
 
 if __name__ == '__main__':

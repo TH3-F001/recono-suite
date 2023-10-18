@@ -19,7 +19,6 @@ found
 - Knockpy
 - ShoSubGo
 - Subfinder
-- Subscraper
 - Subdomainizer
 - Waybackurls
 
