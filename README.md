@@ -27,6 +27,11 @@ At this time the project and the install process have only been tested on Fedora
 
 ## Install:
 
+### 0) Install Pre-reqs:
+    pipx
+    go
+    
+
 ### 1) Clone the repository and enter the directory:
     git clone git@github.com:TH3-F001/recono-suite.git
     cd recono-suite

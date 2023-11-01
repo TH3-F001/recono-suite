@@ -1,22 +1,20 @@
 #!/usr/bin/env python
 import os
-import traceback
 import tarfile
 import toml
 import subprocess
 import requests
 import shutil
 import distro
-import sys
 
-import common
-from common import handle_error, get_api_keys
+from recono_sub.common import common
+from recono_sub.common.common import handle_error, get_api_keys
 from zipfile import ZipFile
 
 
 config_dir = os.path.expanduser('~/.config/recono-suite')
 go_bin_path = os.path.expanduser('~/go/bin')
-executable_dir = os.path.expanduser('~/.local/bin')
+executable_dir = os.path.expanduser('~/.bin')
 downloads_dir = os.path.expanduser('~/Downloads')
 config_file = os.path.join(config_dir, 'config.toml')
 configuration = {}
@@ -29,6 +27,7 @@ def initialize_file_structure_requirements():
     temp_subdom_master_path = os.path.join(script_root, 'wordlists', 'subdomain_master.txt')
     new_subdom_master_path = os.path.join(config_dir, 'subdomain_master.txt')
     profile_path = os.path.expanduser('~/.profile')
+    pipx_path = os.path.expanduser('~/.local/bin')
     path_line = f'export PATH="$PATH:{executable_dir}"'
     current_path_var = os.environ.get('PATH','').split(':')
     api_keys = get_api_keys(config_file)
@@ -37,13 +36,16 @@ def initialize_file_structure_requirements():
     configuration['binary_paths'] = {
         'amass': os.path.join(executable_dir, 'amass'),
         'assetfinder': os.path.join(go_bin_path, 'assetfinder'),
-        'bbot': os.path.join(executable_dir, 'bbot'),
+        'bbot': os.path.join(pipx_path, 'bbot'),
         'github-subdomains': os.path.join(go_bin_path, 'github-subdomains'),
+        'go': '/usr/bin/go',
+        'pipx' : '/usr/bin/pipx',
         'hakrawler': os.path.join(go_bin_path, 'hakrawler'),
-        'knockpy': os.path.join(executable_dir, 'knockpy', 'knockpy.py'),
+        'knockpy': os.path.join(pipx_path, 'knockpy'),
+        'massdns': os.path.join(executable_dir, 'massdns'),
         'shosubgo': os.path.join(go_bin_path, 'shosubgo'),
         'shuffledns': os.path.join(go_bin_path,'shuffledns'),
-        'subdomainizer': os.path.join(executable_dir, 'subdomainizer', 'SubDomainizer.py'),
+        'subdomainizer': os.path.join(pipx_path, 'subdomainizer'),
         'subfinder': os.path.join(go_bin_path, 'subfinder'),
         'waybackurls': os.path.join(go_bin_path, 'waybackurls'),
     }
@@ -55,8 +57,14 @@ def initialize_file_structure_requirements():
     if os.path.exists(config_dir):
         shutil.rmtree(config_dir)
 
-    os.makedirs(executable_dir, exist_ok=True)
-    os.makedirs(config_dir)
+    if os.path.exists(executable_dir):
+        if os.path.isdir(executable_dir):
+            shutil.rmtree(executable_dir)
+        elif os.path.exists(executable_dir):
+            os.remove(executable_dir)
+
+    os.mkdir(executable_dir)
+    os.mkdir(config_dir)
 
     # Move Wordlists into config_dir
     source_wordlists_path = os.path.join(script_root, 'wordlists')
@@ -91,16 +99,8 @@ def initialize_file_structure_requirements():
 
 
 #region Utility Functions
-def shell_command_is_installed(cmd, override=''):
-    if override:
-        test_command = override.split()
-    else:
-        test_command = f'{cmd} --version'.split()
-    try:
-        subprocess.run(test_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        return True
-    except:
-        return False
+def shell_command_is_installed(cmd):
+    return os.path.exists(configuration['binary_paths'][cmd])
 
 
 
@@ -205,17 +205,54 @@ def install_from_github(url, extension, binary_name):
         return handle_error(f'Binary {binary_name} is not in expected location. Please check your downloads folder and install binary to {out_path} manually.', exception=e)
 
 def git_clone(url, name):
-    out_path = os.path.dirname(configuration['binary_paths'][name])
-    cmd = f'git clone {url} {out_path}'.split()
+    out_path = os.path.join(downloads_dir, name)
+    cmd = f'/usr/bin/git clone {url} {out_path}'.split()
 
     if os.path.exists(out_path):
         shutil.rmtree(out_path)
     try:
-        subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        os.chmod(configuration['binary_paths'][name], 0o755)
+        subprocess.run(cmd, cwd=downloads_dir, env=os.environ, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
+    except subprocess.CalledProcessError as e:
+        print(f"Git clone failed with error code {e.returncode}. Error message: {e.stderr.decode('utf-8')}")
+        return handle_error(f'Problem occurred while cloning {url}. Please download manually and place in {executable_dir}', exception=e)
     except Exception as e:
         return handle_error(f'Problem occurred while cloning {url}. Please download manually and place in {executable_dir}', exception=e)
+
+
+def git_make(url, name, binary_location):
+    temp_out_path = common.make_temp_folder([url, name])
+    out_path = configuration['binary_paths'][name]
+    git_cmd = f'git clone {url} {temp_out_path}'.split()
+    make_cmd = ['make']
+    if os.path.exists(temp_out_path):
+        shutil.rmtree(temp_out_path)
+    try:
+        subprocess.run(git_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        return handle_error(f'Problem occurred while cloning {url}. Please download manually and place in {executable_dir}', exception=e)
+
+    # Time to make the binary, and move it to out_path
+    os.chdir(temp_out_path)
+    try:
+        subprocess.run(make_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        subprocess.run('sudo make install'.split(), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        return handle_error(f'Problem occurred while making the {name} executable. Please check the build process.', exception=e)
+
+    try:
+        if os.path.exists(out_path):
+            if os.path.isdir(out_path):
+                shutil.rmtree(out_path)
+            else:
+                os.remove(out_path)
+        shutil.move(os.path.join(temp_out_path, binary_location), out_path)
+    except Exception as e:
+        return handle_error(f'Problem occurred while moving the binary to {out_path}.', exception=e)
+
+    shutil.rmtree(temp_out_path)
+    return True
 
 
 def install_shell_package(pkg):
@@ -232,16 +269,18 @@ def install_shell_package(pkg):
 
 
 def go_install(pkg, override=''):
+    working_dir = os.path.expanduser("~")
     if override:
         cmd = f'go {override} {pkg}'.split()
     else:
         cmd = f'go install -v {pkg}'.split()
 
     try:
-        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        subprocess.run(cmd, check=False, cwd=working_dir, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
     except Exception as e:
         return handle_error(f'Something went wrong while installing {pkg}', exception=e)
+
 # endregion
 
 
@@ -264,133 +303,154 @@ def install_go():
 
 
 def install_amass():
+    print('\nInstalling Amass...')
     url = 'https://github.com/owasp-amass/amass/releases/download/v3.23.3/amass_Linux_amd64.zip'
     if install_from_github(url, 'zip', 'amass'):
-        print(f'Amass successfully installed to {configuration["binary_paths"]["amass"]}')
+        print(f'\tAmass successfully installed to {configuration["binary_paths"]["amass"]}')
         return True
     else:
         return handle_error('Amass Not installed', ret=False)
 
 
 def install_assetfinder():
+    print('\nInstalling AssetFinder...')
     url = 'github.com/tomnomnom/assetfinder@latest'
     out_path = configuration['binary_paths']['assetfinder']
     if go_install(url) and os.path.exists(out_path):
-        print(f'AssetFinder successfully installed to {out_path}')
+        print(f'\tAssetFinder successfully installed to {out_path}')
         return True
     else:
         return False
 
 
 def install_bbot():
+    print('\nInstalling Bbot...')
     cmd = 'pipx install bbot --force'.split()
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        print(f'Bbot successfully installed to {configuration["binary_paths"]["bbot"]}')
+        print(f'\tBbot successfully installed to {configuration["binary_paths"]["bbot"]}')
         return True
     except Exception as e:
         return handle_error('Problem occurred while installing Bbot', e)
 
 
 def install_github_subdomains():
+    print('\nInstalling Github-Subdomains...')
     url = 'github.com/gwen001/github-subdomains@latest'
     out_path = configuration['binary_paths']['github-subdomains']
     if go_install(url) and os.path.exists(out_path):
-        print(f'Github-Subdomains successfully installed to {out_path}')
+        print(f'\tGithub-Subdomains successfully installed to {out_path}')
         return True
     else:
         return False
 
 
 def install_hakrawler():
+    print('\nInstalling Hakrawler...')
     url = 'github.com/hakluke/hakrawler@latest'
     out_path = configuration['binary_paths']['hakrawler']
     if go_install(url) and os.path.exists(out_path):
-        print(f'Hakrawler successfully installed to {out_path}')
+        print(f'\tHakrawler successfully installed to {out_path}')
         return True
     else:
         return False
 
 
 def install_knockpy():
+    print('\nInstalling Knockpy...')
     url = 'https://github.com/guelfoweb/knock.git'
     name = 'knockpy'
-    out_path = configuration['binary_paths']['knockpy']
-    prereq_file = os.path.join(os.path.dirname(out_path), 'requirements.txt')
-    prereq_cmd = f'pip install -r {prereq_file}'.split()
-    setup_file = os.path.join(os.path.dirname(out_path), 'setup.py')
-    setup_cmd = f'sudo python {setup_file} install'
+    downloads_path = os.path.join(downloads_dir, name)
+    setup_cmd = f'pipx install --force {downloads_path} '.split()
 
     try:
         git_clone(url, name)
-        print(f'Installing Knockpy requirements at {prereq_file}')
-        subprocess.run(prereq_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        print(f'Running setup file {setup_file}')
-        subprocess.run(setup_cmd, check=True, shell=True, cwd=os.path.dirname(out_path), stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        print(f'Knockpy successfully installed to {out_path}')
+        subprocess.run(setup_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f'\tKnockpy successfully installed')
         return True
     except Exception as e:
         return handle_error(f'Problem ocurred while installing Knockpy', exception=e)
 
 
+def install_massdns():
+    print('\tInstalling MassDNS...')
+    url = 'https://github.com/blechschmidt/massdns.git'
+    out_path = configuration['binary_paths']['massdns']
+    if git_make(url, 'massdns', 'bin/massdns' ) and os.path.exists(out_path):
+        print(f'\t\tMassDNS successfully insatalled to {out_path}')
+        return True
+    else:
+        return False
+
+
 def install_shosubgo():
+    print('\nInstalling Showsubgo...')
     url = 'github.com/incogbyte/shosubgo@latest'
     out_path = configuration['binary_paths']['shosubgo']
     if go_install(url) and os.path.exists(out_path):
-        print(f'Shosubgo successfully installed to {out_path}')
+        print(f'\tShosubgo successfully installed to {out_path}')
         return True
     else:
         return False
 
 
 def install_shuffledns():
+    print('\nInstalling ShuffleDNS...')
     url = 'github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest'
     out_path = configuration['binary_paths']['shuffledns']
-    if go_install(url) and os.path.exists(out_path):
-        print(f'ShuffleDNS successfully installed to {out_path}')
-        return True
+    common.update_resolver_list(configuration)
+    if install_massdns():
+        go_installed = go_install(url)
+        outpath_exists = os.path.exists(out_path)
+        if go_installed and outpath_exists:
+            print(f'\tShuffleDNS successfully installed to {out_path}')
+            return True
+        else:
+            return False
     else:
         return False
 
 
 def install_subdomainizer():
-    url = 'https://github.com/nsonaniya2010/SubDomainizer.git'
+    print(f'\nInstalling Subdomainizer...')
+    url = 'https://github.com/TH3-F001/SubDomainizer.git'
     name = 'subdomainizer'
-    out_path = configuration['binary_paths']['subdomainizer']
-    prereq_file = os.path.join(os.path.dirname(out_path), 'requirements.txt')
-    prereq_cmd = f'pip install -r {prereq_file} -force'.split()
+    downloads_path = os.path.join(downloads_dir, name)
+    setup_cmd = f'pipx install --force  {downloads_path}'
+
     try:
         git_clone(url, name)
-        print(f'Installing requirments at {prereq_file}')
-        subprocess.run(prereq_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        print(f'SubDomainzer successfully installed to {out_path}')
+        result = subprocess.run(setup_cmd, check=True, cwd=downloads_path, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
+        print(f'\tSubDomainzer successfully installed.')
         return True
     except Exception as e:
         return handle_error(f'Problem ocurred while installing SubDomainizer.', exception=e)
 
 
 def install_subfinder():
+    print('\nInstalling SubFinder...')
     url = 'github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest'
     out_path = configuration['binary_paths']['subfinder']
     if go_install(url) and os.path.exists(out_path):
-        print(f'SubFinder successfully installed to {out_path}')
+        print(f'\tSubFinder successfully installed to {out_path}')
         return True
     else:
         return False
 
 
 def install_waybackurls():
+    print('\nInstalling WaybackURLs...')
     url = 'github.com/tomnomnom/waybackurls@latest'
     out_path = configuration['binary_paths']['waybackurls']
     if go_install(url) and os.path.exists(out_path):
-        print(f'Waybackurls successfully installed to {out_path}')
+        print(f'\tWaybackURLs successfully installed to {out_path}')
         return True
     else:
         return False
 
 
-def check_and_install(cmd, install_function, override=None):
-    if not shell_command_is_installed(cmd, override=override):
+def check_and_install(cmd, install_function):
+    if not shell_command_is_installed(cmd):
         return install_function()
     return True
 
@@ -401,28 +461,32 @@ def install_shell_tools():
     test_domain = 'chinesehappiness.com'
 
     commands_to_check = [
-        ('pipx', install_pipx, None),
-        ('go', install_go, 'go version'),
-        ('amass', install_amass, None),
-        ('assetfinder', install_assetfinder, f'assetfinder --subs-only {test_domain}'),
-        ('bbot', install_bbot, None),
-        ('github-subdomains', install_github_subdomains,
-         f'github-subdomains -d {test_domain} -q -raw -t {configuration["api_keys"]["GitHub"]}'),
-        ('hakrawler', install_hakrawler, f'echo {test_domain} | hakrawler -d 1'),
-        ('knockpy', install_knockpy, None),
-        ('shosubgo', install_shosubgo, f'shosubgo -d {test_domain} -s {configuration["api_keys"]["Shodan"]}'),
-        ('shuffledns', install_shuffledns, f'shuffledns -d {test_domain} -w {test_wordlist} -r {configuration["wordlists"]["resolver_file"]}'),
-        ('subdomainizer', install_subdomainizer, None),
-        ('subfinder', install_subfinder, None),
-        ('waybackurls', install_waybackurls, None)
+        ('pipx', install_pipx),
+        ('go', install_go),
+        ('amass', install_amass),
+        ('assetfinder', install_assetfinder),
+        ('bbot', install_bbot),
+        ('github-subdomains', install_github_subdomains),
+        ('hakrawler', install_hakrawler),
+        ('knockpy', install_knockpy),
+        ('shosubgo', install_shosubgo),
+        ('shuffledns', install_shuffledns),
+        ('subdomainizer', install_subdomainizer),
+        ('subfinder', install_subfinder),
+        ('waybackurls', install_waybackurls)
     ]
 
     required_commands = {}
-    for command, install_func, override in commands_to_check:
-        required_commands[command] = check_and_install(command, install_func, override)
+    for command, install_func in commands_to_check:
+        required_commands[command] = check_and_install(command, install_func)
 
-    for command, status in required_commands.items():
-        print(f"\n[{command}]:\n\t{'Installed' if status else 'Not Installed'}")
+    print(f"{'Binary':<20} {'Path':<50} {'Installed'}")
+
+    for binary, path in configuration['binary_paths'].items():
+        exists = os.path.exists(path)
+        print(f"{binary:<20} {path:<50} {exists}")
+
+
 # endregion
 
 
