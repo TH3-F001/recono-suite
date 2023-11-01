@@ -8,7 +8,7 @@ import shutil
 import distro
 
 from common import common
-from common import handle_error, get_api_keys
+from common.common import handle_error, get_api_keys
 from zipfile import ZipFile
 
 
