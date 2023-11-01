@@ -3,7 +3,7 @@ import os
 import requests
 import json
 from concurrent.futures import ThreadPoolExecutor
-from recono_sub.common import common
+from common import common
 
 from time import sleep
 from random import uniform

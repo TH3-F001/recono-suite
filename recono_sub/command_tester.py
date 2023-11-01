@@ -1,8 +1,8 @@
-__package__ = 'recono_sub'
+__package__ = 'recono_sub' 
 import output_parser
 from subdomain_tools import SubdomainRunner
 import os
-from recono_sub.common import common
+from common import common
 
 output_directory = '/home/neon/Downloads/recono-testing/results'
 output_file = '/home/neon/Downloads/recono-testing/master_out.txt'

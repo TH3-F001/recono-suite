@@ -7,8 +7,8 @@ import requests
 import shutil
 import distro
 
-from recono_sub.common import common
-from recono_sub.common.common import handle_error, get_api_keys
+from common import common
+from common import handle_error, get_api_keys
 from zipfile import ZipFile
 
 

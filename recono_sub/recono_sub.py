@@ -3,10 +3,10 @@ import argparse
 import os
 from multiprocessing import Pool, Manager
 from threading import Thread
-from recono_sub.common import common
-from . import output_parser
-from . import subdomain_tools
-from .subdomain_tools import SubdomainRunner as SubRunner
+from common import common
+import output_parser
+import subdomain_tools
+from subdomain_tools import SubdomainRunner as SubRunner
 
 
 config_file = os.path.expanduser("~/.config/recono-suite/config.toml")

@@ -4,7 +4,7 @@ from csv import DictReader
 from glob import glob
 import os
 from urllib.parse import urlparse
-from recono_sub.common import common
+from common import common
 
 
 def _list_file_to_list(file_path):
