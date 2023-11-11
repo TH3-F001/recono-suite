@@ -24,34 +24,87 @@ configuration = {}
 def initialize_file_structure_requirements():
     global configuration
     script_root = os.path.dirname(os.path.abspath(__file__))
-    temp_subdom_master_path = os.path.join(script_root, 'wordlists', 'subdomain_master.txt')
-    new_subdom_master_path = os.path.join(config_dir, 'subdomain_master.txt')
     profile_path = os.path.expanduser('~/.profile')
     pipx_path = os.path.expanduser('~/.local/bin')
     path_line = f'export PATH="$PATH:{executable_dir}"'
     current_path_var = os.environ.get('PATH','').split(':')
     api_keys = get_api_keys(config_file)
-    recon_dir = os.path.join(config_dir, 'recono-suite')
-    configuration['api_keys'] = api_keys
-    configuration['binary_paths'] = {
-        'amass': os.path.join(executable_dir, 'amass'),
-        'assetfinder': os.path.join(go_bin_path, 'assetfinder'),
-        'bbot': os.path.join(pipx_path, 'bbot'),
-        'github-subdomains': os.path.join(go_bin_path, 'github-subdomains'),
-        'go': '/usr/bin/go',
-        'pipx' : '/usr/bin/pipx',
-        'hakrawler': os.path.join(go_bin_path, 'hakrawler'),
-        'knockpy': os.path.join(pipx_path, 'knockpy'),
-        'massdns': os.path.join(executable_dir, 'massdns'),
-        'shosubgo': os.path.join(go_bin_path, 'shosubgo'),
-        'shuffledns': os.path.join(go_bin_path,'shuffledns'),
-        'subdomainizer': os.path.join(pipx_path, 'subdomainizer'),
-        'subfinder': os.path.join(go_bin_path, 'subfinder'),
-        'waybackurls': os.path.join(go_bin_path, 'waybackurls'),
-    }
-    configuration['wordlists'] = {
-        'resolver_file': os.path.join(config_dir, 'wordlists', 'resolvers.txt'),
-        'subdomain_wordlist': os.path.join(config_dir, 'wordlists', 'subdomain_master.txt')
+
+    configuration = {
+        'api_keys': api_keys,
+        'wordlists': {
+            'resolver_file': os.path.join(config_dir, 'wordlists', 'resolvers.txt'),
+            'subdomain_wordlist': os.path.join(config_dir, 'wordlists', 'subdomain_master.txt')
+        },
+        'tools': {
+            'amass': {
+                'binary_path': os.path.join(executable_dir, 'amass'),
+                'output_extension':'json',
+                'active_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
+                'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -passive -json <OUT_PATH>"
+            },
+            'assetfinder': {
+                'binary_path': os.path.join(go_bin_path, 'assetfinder'),
+                'output_extension': 'txt',
+                'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
+            },
+            'bbot': {
+                'binary_path': os.path.join(pipx_path, 'bbot'),
+                'output_extension': '',
+                'active_cmd': "<BINARY> -t <DOMAIN_ARG> -f subdomain-enum  -y -s -o <OUT_PATH> --no-deps",
+                'passive_cmd': "<BINARY> -t <DOMAIN_ARG> -f subdomain-enum -rf passive -y -s -o <OUT_PATH> --no-deps",
+            },
+            'github-subdomains': {
+                'binary_path': os.path.join(go_bin_path, 'github-subdomains'),
+                'output_extension': 'txt',
+                'passive_cmd': "<BINARY> -e -d <DOMAIN_ARG> -t <GITHUB_KEY> -o <OUT_PATH>",
+            },
+            'go': {
+                'binary_path':'/usr/bin/go'
+            },
+            'hakrawler': {
+                'binary_path': os.path.join(go_bin_path, 'hakrawler'),
+                'output_extension': 'txt',
+                'active_cmd': "cat <URL_LIST_FILE> | <BINARY> -subs -u -d 5 -t <THREADS>",
+            },
+            'knockpy': {
+                'binary_path': os.path.join(pipx_path, 'knockpy'),
+                'output_extension': "",
+                'active_cmd': "<BINARY> <DOMAIN_ARG> --no-http-code 404 -o <OUT_PATH> -th <THREADS>",
+            },
+            'massdns': {
+                'binary_path': os.path.join(executable_dir, 'massdns'),
+            },
+            'pipx': {
+                'binary_path': "/usr/bin/pipx",
+            },
+            'shosubgo': {
+                'binary_path': os.path.join(go_bin_path, 'shosubgo'),
+                'output_extension': "txt",
+                'passive_cmd': "<BINARY> -d <DOMAIN_ARG> -s <SHODAN_KEY>",
+            },
+            'shuffledns': {
+                'binary_path': os.path.join(go_bin_path,'shuffledns'),
+                'output_extension': "json",
+                'active_cmd': "<BINARY> -d <DOMAIN_ARG> -w <WORDLIST_FILE> -r <RESOLVER_FILE> -json -o <OUT_PATH> -m <MASSDNS_PATH>",
+            },
+            'subdomainizer': {
+                'binary_path': os.path.join(pipx_path, 'subdomainizer'),
+                'output_extension': "txt",
+                'passive_cmd': "<BINARY> -l <URL_LIST_FILE> -d <DOMAIN_ARG> -g -gt <GITHUB_KEY> -o <OUT_PATH> -cop <CLOUD_PATH>",
+            },
+            'subfinder': {
+                'binary_path': os.path.join(go_bin_path, 'subfinder'),
+                'output_extension': "txt",
+                'active_cmd': "<BINARY> -dL <DOMAIN_ARG> -rL <RESOLVER_FILE> -all -silent -oJ -o <OUT_PATH> -t <THREADS>",
+                'passive_cmd': "<BINARY> -dL <DOMAIN_ARG> -rL <RESOLVER_FILE> -all -silent -oJ -o <OUT_PATH> -t <THREADS>",
+            },
+            'waybackurls': {
+                'binary_path': os.path.join(go_bin_path, 'waybackurls'),
+                'output_extension': "txt",
+                'passive_cmd': "echo <DOMAIN_ARG> | <BINARY>",
+            },
+        },
     }
 
     if os.path.exists(config_dir):
@@ -100,7 +153,7 @@ def initialize_file_structure_requirements():
 
 #region Utility Functions
 def shell_command_is_installed(cmd):
-    return os.path.exists(configuration['binary_paths'][cmd])
+    return os.path.exists(configuration['tools'][cmd]['binary_path'])
 
 
 
@@ -193,7 +246,7 @@ def install_from_github(url, extension, binary_name):
 
     extracted_dir = get_extracted_directory(url, extension)
     binary_path = os.path.join(extracted_dir, binary_name)
-    out_path = configuration['binary_paths'][binary_name]
+    out_path = configuration['tools'][binary_name]['binary_path']
     if not download_and_extract_tool(url, extension):
         return False
 
@@ -222,7 +275,7 @@ def git_clone(url, name):
 
 def git_make(url, name, binary_location):
     temp_out_path = common.make_temp_folder([url, name])
-    out_path = configuration['binary_paths'][name]
+    out_path = configuration['tools'][name]['binary_path']
     git_cmd = f'git clone {url} {temp_out_path}'.split()
     make_cmd = ['make']
     if os.path.exists(temp_out_path):
@@ -306,7 +359,7 @@ def install_amass():
     print('\nInstalling Amass...')
     url = 'https://github.com/owasp-amass/amass/releases/download/v3.23.3/amass_Linux_amd64.zip'
     if install_from_github(url, 'zip', 'amass'):
-        print(f'\tAmass successfully installed to {configuration["binary_paths"]["amass"]}')
+        print(f'\tAmass successfully installed to {configuration["tools"]["amass"]["binary_path"]}')
         return True
     else:
         return handle_error('Amass Not installed', ret=False)
@@ -315,7 +368,7 @@ def install_amass():
 def install_assetfinder():
     print('\nInstalling AssetFinder...')
     url = 'github.com/tomnomnom/assetfinder@latest'
-    out_path = configuration['binary_paths']['assetfinder']
+    out_path = configuration["tools"]["assetfinder"]["binary_path"]
     if go_install(url) and os.path.exists(out_path):
         print(f'\tAssetFinder successfully installed to {out_path}')
         return True
@@ -328,7 +381,7 @@ def install_bbot():
     cmd = 'pipx install bbot --force'.split()
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
-        print(f'\tBbot successfully installed to {configuration["binary_paths"]["bbot"]}')
+        print(f'\tBbot successfully installed to {configuration["tools"]["bbot"]["binary_path"]}')
         return True
     except Exception as e:
         return handle_error('Problem occurred while installing Bbot', e)
@@ -337,7 +390,7 @@ def install_bbot():
 def install_github_subdomains():
     print('\nInstalling Github-Subdomains...')
     url = 'github.com/gwen001/github-subdomains@latest'
-    out_path = configuration['binary_paths']['github-subdomains']
+    out_path = configuration['tools']['github-subdomains']['binary_path']
     if go_install(url) and os.path.exists(out_path):
         print(f'\tGithub-Subdomains successfully installed to {out_path}')
         return True
@@ -348,7 +401,7 @@ def install_github_subdomains():
 def install_hakrawler():
     print('\nInstalling Hakrawler...')
     url = 'github.com/hakluke/hakrawler@latest'
-    out_path = configuration['binary_paths']['hakrawler']
+    out_path = configuration["tools"]["hakrawler"]["binary_path"]
     if go_install(url) and os.path.exists(out_path):
         print(f'\tHakrawler successfully installed to {out_path}')
         return True
@@ -366,7 +419,7 @@ def install_knockpy():
     try:
         git_clone(url, name)
         subprocess.run(setup_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(f'\tKnockpy successfully installed')
+        print(f'\tKnockpy successfully installed to {configuration["tools"]["knockpy"]["binary_path"]}')
         return True
     except Exception as e:
         return handle_error(f'Problem ocurred while installing Knockpy', exception=e)
@@ -375,7 +428,7 @@ def install_knockpy():
 def install_massdns():
     print('\tInstalling MassDNS...')
     url = 'https://github.com/blechschmidt/massdns.git'
-    out_path = configuration['binary_paths']['massdns']
+    out_path = configuration["tools"]["massdns"]["binary_path"]
     if git_make(url, 'massdns', 'bin/massdns' ) and os.path.exists(out_path):
         print(f'\t\tMassDNS successfully insatalled to {out_path}')
         return True
@@ -386,7 +439,7 @@ def install_massdns():
 def install_shosubgo():
     print('\nInstalling Showsubgo...')
     url = 'github.com/incogbyte/shosubgo@latest'
-    out_path = configuration['binary_paths']['shosubgo']
+    out_path = configuration["tools"]["shosubgo"]["binary_path"]
     if go_install(url) and os.path.exists(out_path):
         print(f'\tShosubgo successfully installed to {out_path}')
         return True
@@ -397,7 +450,7 @@ def install_shosubgo():
 def install_shuffledns():
     print('\nInstalling ShuffleDNS...')
     url = 'github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest'
-    out_path = configuration['binary_paths']['shuffledns']
+    out_path = configuration["tools"]["shuffledns"]["binary_path"]
     common.update_resolver_list(configuration)
     if install_massdns():
         go_installed = go_install(url)
@@ -430,7 +483,7 @@ def install_subdomainizer():
 def install_subfinder():
     print('\nInstalling SubFinder...')
     url = 'github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest'
-    out_path = configuration['binary_paths']['subfinder']
+    out_path = configuration["tools"]["amass"]["binary_path"]
     if go_install(url) and os.path.exists(out_path):
         print(f'\tSubFinder successfully installed to {out_path}')
         return True
@@ -441,7 +494,7 @@ def install_subfinder():
 def install_waybackurls():
     print('\nInstalling WaybackURLs...')
     url = 'github.com/tomnomnom/waybackurls@latest'
-    out_path = configuration['binary_paths']['waybackurls']
+    out_path = configuration["tools"]["waybackurls"]["binary_path"]
     if go_install(url) and os.path.exists(out_path):
         print(f'\tWaybackURLs successfully installed to {out_path}')
         return True
@@ -482,9 +535,10 @@ def install_shell_tools():
 
     print(f"{'Binary':<20} {'Path':<50} {'Installed'}")
 
-    for binary, path in configuration['binary_paths'].items():
+    for tool_name, settings in configuration["tools"].items():
+        path = settings['binary_path']
         exists = os.path.exists(path)
-        print(f"{binary:<20} {path:<50} {exists}")
+        print(f"{tool_name:<20} {path:<50} {exists}")
 
 
 # endregion

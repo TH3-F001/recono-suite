@@ -15,6 +15,7 @@ class SubdomainRunner:
         self.domain_file = common.make_temp_file(domains)
         self.out_dir = f'{os.path.abspath(output_dir)}/'
         self.config = config
+        print(config)
         self.binary_paths = config['binary_paths']
         self.api_keys = config['api_keys']
 

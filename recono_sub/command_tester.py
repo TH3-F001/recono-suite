@@ -3,12 +3,14 @@ import output_parser
 from subdomain_tools import SubdomainRunner
 import os
 from common import common
+import json
 
 output_directory = '/home/neon/Downloads/recono-testing/results'
 output_file = '/home/neon/Downloads/recono-testing/master_out.txt'
 domains = common.get_lines_from_file('/home/neon/Downloads/recono-testing/test-domains.txt')
 config_file = os.path.expanduser("~/.config/recono-suite/config.toml")
 config = common.get_config(config_file)
+print(json.dumps(config, indent=4))
 
 cmd = SubdomainRunner(domains, output_directory, config)
 
