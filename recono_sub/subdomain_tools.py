@@ -81,7 +81,7 @@ class SubdomainRunner:
         cmd = f'{amass_binary} enum -df {domain_file} -v -passive -json {out_path}'
         print(f'Running Amass against {domains}\n\tOutputting results to {out_path}')
         result = common.run_command(cmd, env=os.environ)
-        # print(f'STDOUT: {stdout}\nSTDERR: {stderr}')
+
 
     def assetfinder(self, domains):
         with ThreadPoolExecutor(max_workers=self.threads) as executor:
