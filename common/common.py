@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import re
 import requests
 import socket
-from subprocess import Popen, PIPE
 
 
 def get_lines_from_file(filename):
@@ -67,15 +66,30 @@ def port_is_open(domain, port):
         return False
     return True
 
-
-def domains_to_urls(domain_list):
+def domains_to_urls(domains):
     url_list = []
-    for domain in domain_list:
+    if isinstance(domains, str) and ',' in domains:
+        domain_list = domains.split(',')
+    elif isinstance(domains, str):
+        domains_list = [domains]
+    elif isinstance(domains, list):
+        domains_list = domains
+    else:
+        raise ValueError("Cannot create url list. Invalid domains argument")
+        return None
+
+    for domain in domains:
         if port_is_open(domain, 443):
             url_list.append(f'https://{domain}')
-        elif port_is_open(domain, 80):
+        else:
             url_list.append(f'http://{domain}')
     return url_list
+
+def generate_url_file_from_domains(domains):
+    url_list = domains_to_urls(domains)
+    file_path = make_temp_file(url_list)
+    return file_path
+
 
 
 def get_config(config_file):
@@ -125,12 +139,19 @@ def handle_error(message: str, exception: Exception=None, ret: bool=True, prefix
         ret = False
     return ret
 
+def indent_text(text, tab_count=2):
+    tab = '\t'*tab_count
+    return '\n'.join([tab + line for line in text.split('\n')]).rstrip()
+
+def format_runtime(runtime):
+    hours = int(runtime // 3600)
+    minutes = int((runtime % 3600) // 60)
+    seconds = runtime % 60
+    return f"{hours} hours, {minutes} minutes, {seconds:.2f} seconds"
+
 
 def make_temp_file(input_list):
-    m = hashlib.sha1()
-    m.update(str(input_list).encode('utf-8'))
-    hash_str = m.hexdigest()
-
+    hash_str = hash_object(input_list)
     temp_file = tempfile.NamedTemporaryFile(delete=False, prefix=f"recono-sub_{hash_str}_", suffix=".txt")
 
     with open(temp_file.name, 'w') as file:
@@ -141,70 +162,74 @@ def make_temp_file(input_list):
 
 
 def make_temp_folder(input_list):
-    m = hashlib.sha1()
-    m.update(str(input_list).encode('utf-8'))
-    hash_str = m.digest()
+    hash_str = hash_object(input_list)
     temp_dir = tempfile.mkdtemp(prefix = f'recono-sub_{hash_str}_')
     return temp_dir
 
-def run(cmd, retries=5, shell=False):
-    command = cmd.split(' ')
-    for i in range(retries):
-        try:
-            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
-            if result.returncode != 0:
-                    handle_error(f'"{cmd}" failed on attempt {i+1}: {result.stderr.decode("utf-8")}\nSTDERR: {result.stderr}\nSTDOUT: {result.stdout}')
-                    sleep_time = random.uniform(0.1, 3)
-                    time.sleep(sleep_time)
-            else:
-                print(f'{cmd} has completed successfully')
-                return result.stdout.decode('utf-8'), result.stderr.decode('utf-8')
-        except Exception as e:
-            handle_error(f'A problem occurred while trying to run the shell command: {cmd}', e)
 
-    handle_error(f'{cmd} failed after {retries} attempts')
-    return None,None
+def hash_object(input_object):
+    m = hashlib.md5()
+    m.update(str(input_object).encode('utf-8'))
+    return m.hexdigest()
 
 
-
-
-
-def run_pipeline(cmd, output_path=None, retries=5):
+def run_command(cmd, output_path=None, retries=5, shell=False, debug=True, env=None):
     commands = [c.strip() for c in cmd.split('|')]
     for i in range(retries):
         try:
             processes = []
             prev_stdout = None
+            start_time = time.time()
 
             for command in commands:
-                p = Popen(command.split(), stdin=prev_stdout, stdout=PIPE, stderr=PIPE)
+                if shell:
+                    input_command = command
+                else:
+                    input_command = command.split()
+
+                print(f'COMMAND: {input_command}')
+                p = subprocess.Popen(input_command, stdin=prev_stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env)
                 if prev_stdout:
                     prev_stdout.close()
                 prev_stdout = p.stdout
                 processes.append(p)
 
             stdout, stderr = processes[-1].communicate()
+            end_time = time.time()
+            runtime = end_time - start_time
 
             for p in processes:
                 p.wait()
 
-            if any(p.returncode != 0 for p in processes):
-                handle_error(f'"{cmd}" failed on attempt {i + 1}: {stderr.decode("utf-8")}\nSTDERR: {stderr}\nSTDOUT: {stdout}')
+            last_process = processes[-1]
+            result = {
+                'stdin': cmd,
+                'stdout': stdout.decode('utf-8'),
+                'stderr': stderr.decode('utf-8'),
+                'returncode': last_process.returncode,
+                'runtime': runtime
+            }
+
+            if last_process.returncode != 0:
+                handle_error(f'"{cmd}" failed on attempt {i + 1}: {stderr.decode("utf-8")}')
                 sleep_time = random.uniform(0.1, 3)
                 time.sleep(sleep_time)
             else:
                 if output_path:
                     with open(output_path, 'wb') as f:
                         f.write(stdout)
-                print(f'"{cmd}" has completed successfully')
-                return stdout.decode('utf-8'), stderr.decode('utf-8')
+                if debug:
+                    indented_stdout = indent_text(result['stdout'])
+                    indented_stderr = indent_text(result['stderr'])
+                    pretty_runtime = format_runtime(runtime)
+                    print(f'\tCommand:\n\t\t{cmd}\n\tSTDOUT:\n{indented_stdout}\n\tSTDERR:\n{indented_stderr}\n\tRuntime:\n\t\t{pretty_runtime}\n\tReturn Code:\n\t\t{last_process.returncode}')
+                print(f'\t"{cmd}" has completed successfully')
+                return result
 
         except Exception as e:
             handle_error(f'A problem occurred while trying to run the shell command: "{cmd}"', e)
 
     handle_error(f'"{cmd}" failed after {retries} attempts.')
-    return None, None
-
-
+    return None
 
 

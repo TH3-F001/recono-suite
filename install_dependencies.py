@@ -41,23 +41,31 @@ def initialize_file_structure_requirements():
                 'binary_path': os.path.join(executable_dir, 'amass'),
                 'output_extension':'json',
                 'active_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
-                'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -passive -json <OUT_PATH>"
+                'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -passive -json <OUT_PATH>",
+                'domain_arg_type': 'domain_file',
+                'run_command_args': {'shell': False, 'env': os.environ}
             },
             'assetfinder': {
                 'binary_path': os.path.join(go_bin_path, 'assetfinder'),
                 'output_extension': 'txt',
                 'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False, 'out_path': True, 'env': 'os.environ'}
             },
             'bbot': {
                 'binary_path': os.path.join(pipx_path, 'bbot'),
                 'output_extension': '',
                 'active_cmd': "<BINARY> -t <DOMAIN_ARG> -f subdomain-enum  -y -s -o <OUT_PATH> --no-deps",
                 'passive_cmd': "<BINARY> -t <DOMAIN_ARG> -f subdomain-enum -rf passive -y -s -o <OUT_PATH> --no-deps",
+                'domain_arg_type': 'comma_separated',
+                'run_command_args': {'shell': False, 'env': 'os.environ'}
             },
             'github-subdomains': {
                 'binary_path': os.path.join(go_bin_path, 'github-subdomains'),
                 'output_extension': 'txt',
                 'passive_cmd': "<BINARY> -e -d <DOMAIN_ARG> -t <GITHUB_KEY> -o <OUT_PATH>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False, 'env': 'os.environ'}
             },
             'go': {
                 'binary_path':'/usr/bin/go'
@@ -66,11 +74,15 @@ def initialize_file_structure_requirements():
                 'binary_path': os.path.join(go_bin_path, 'hakrawler'),
                 'output_extension': 'txt',
                 'active_cmd': "cat <URL_LIST_FILE> | <BINARY> -subs -u -d 5 -t <THREADS>",
+                'domain_arg_type': 'domain_file',
+                'run_command_args': {'shell': False, 'out_path': True}
             },
             'knockpy': {
                 'binary_path': os.path.join(pipx_path, 'knockpy'),
                 'output_extension': "",
                 'active_cmd': "<BINARY> <DOMAIN_ARG> --no-http-code 404 -o <OUT_PATH> -th <THREADS>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False}
             },
             'massdns': {
                 'binary_path': os.path.join(executable_dir, 'massdns'),
@@ -82,27 +94,37 @@ def initialize_file_structure_requirements():
                 'binary_path': os.path.join(go_bin_path, 'shosubgo'),
                 'output_extension': "txt",
                 'passive_cmd': "<BINARY> -d <DOMAIN_ARG> -s <SHODAN_KEY>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False, 'output_path': True}
             },
             'shuffledns': {
                 'binary_path': os.path.join(go_bin_path,'shuffledns'),
                 'output_extension': "json",
                 'active_cmd': "<BINARY> -d <DOMAIN_ARG> -w <WORDLIST_FILE> -r <RESOLVER_FILE> -json -o <OUT_PATH> -m <MASSDNS_PATH>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False}
             },
             'subdomainizer': {
                 'binary_path': os.path.join(pipx_path, 'subdomainizer'),
                 'output_extension': "txt",
                 'passive_cmd': "<BINARY> -l <URL_LIST_FILE> -d <DOMAIN_ARG> -g -gt <GITHUB_KEY> -o <OUT_PATH> -cop <CLOUD_PATH>",
+                'domain_arg_type': 'domain_file',
+                'run_command_args': {'shell': False}
             },
             'subfinder': {
                 'binary_path': os.path.join(go_bin_path, 'subfinder'),
                 'output_extension': "txt",
                 'active_cmd': "<BINARY> -dL <DOMAIN_ARG> -rL <RESOLVER_FILE> -all -silent -oJ -o <OUT_PATH> -t <THREADS>",
                 'passive_cmd': "<BINARY> -dL <DOMAIN_ARG> -rL <RESOLVER_FILE> -all -silent -oJ -o <OUT_PATH> -t <THREADS>",
+                'domain_arg_type': 'domain_file',
+                'run_command_args': {'shell': False, 'env': 'os.environ'}
             },
             'waybackurls': {
                 'binary_path': os.path.join(go_bin_path, 'waybackurls'),
                 'output_extension': "txt",
                 'passive_cmd': "echo <DOMAIN_ARG> | <BINARY>",
+                'domain_arg_type': 'single_domain',
+                'run_command_args': {'shell': False, 'output_path': True}
             },
         },
     }
@@ -380,6 +402,8 @@ def install_bbot():
     print('\nInstalling Bbot...')
     cmd = 'pipx install bbot --force'.split()
     try:
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        cmd = f'sudo {configuration["tools"]["bbot"]["binary_path"]} --install-all-deps'.split()
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         print(f'\tBbot successfully installed to {configuration["tools"]["bbot"]["binary_path"]}')
         return True
