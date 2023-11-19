@@ -7,9 +7,21 @@ source "$SCRIPT_DIR/../common/basic-operations.lib"
 source "$SCRIPT_DIR/install.lib"
 
 
-INITIAL_INSTALL_SCRIPT="$SCRIPT_DIR/install-root-dependencies.sh"
-AMASS_INSTALL_SCRIPT="$SCRIPT_DIR/install-root"
+declare -a INSTALLER_SCRIPTS=(
+"$SCRIPT_DIR/install-root-dependencies.sh"
+"$SCRIPT_DIR/install-amass.sh"
+"$SCRIPT_DIR/install-assetfinder.sh"
+"$SCRIPT_DIR/install-bbot.sh"
+"$SCRIPT_DIR/install-github-subdomains.sh"
+"$SCRIPT_DIR/install-hakrawler.sh"
+"$SCRIPT_DIR/install-knockpy.sh"
+"$SCRIPT_DIR/install-shosubgo.sh"
+"$SCRIPT_DIR/install-shuffledns.sh"
+"$SCRIPT_DIR/install-subdomainizer.sh"
+"$SCRIPT_DIR/install-subdfinder.sh"
+"$SCRIPT_DIR/install-waybackurls.sh"
+)
 
-check_and_run_script "$INITIAL_INSTALL_SCRIPT"
-
-
+for SCRIPT in "${INSTALLER_SCRIPTS[@]}"; do
+    check_and_run_script "$SCRIPT"
+done
