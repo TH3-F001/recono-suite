@@ -70,6 +70,46 @@ generic_install_package() {
   fi
 }
 
+set_shell_script_permissions() {
+  local DIRECTORY=$1
+
+  echo "🖥️ Setting permissions for shell scripts in $DIRECTORY"
+
+  if ! check_argument "$DIRECTORY"; then
+      print_error "set_shell_script_permissions expects a directory as an argument"
+      return 1
+  fi
+
+  if ! directory_exists "$DIRECTORY"; then
+      print_error "The directory $DIRECTORY does not exist."
+      return 1
+  fi
+
+  find "$DIRECTORY" -type f -name "*.sh" -exec chmod 755 {} \;
+  print_success "Project shell scripts are now exectuable"
+  return 0
+}
+
+add_directories_to_path() {
+  local ADDITIONAL_PATHS=("$@") 
+  local PROFILE_FILE="$HOME/.profile"
+  local PATH_ADDITION=""
+
+  for DIR in "${ADDITIONAL_PATHS[@]}"; do
+      if ! is_in_path "$DIR" ; then
+          echo "Adding $DIR to PATH"
+          PATH_ADDITION="$DIR:$PATH_ADDITION"
+      fi
+  done
+
+  if [ -n "$PATH_ADDITION" ]; then
+      export PATH="$PATH_ADDITION$PATH"
+      EXPORT_LINE="export PATH=\"$PATH_ADDITION\$PATH\""
+      if ! grep -qF "$PATH_ADDITION" "$PROFILE_FILE"; then
+          echo "$EXPORT_LINE" >> "$PROFILE_FILE"
+      fi
+  fi
+}
 
 # ----------- Package Manager Install Functions ----------- #
 install_with_apt() {

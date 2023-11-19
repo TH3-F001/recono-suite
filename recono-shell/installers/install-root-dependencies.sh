@@ -93,7 +93,9 @@ for DEP in "${REQUIRED_DEPENDENCIES[@]}"; do
     fi
 done
 
-declare -a ADDITIONAL_PATHS=("$HOME/go/bin" "/usr/local/go/bin" "/usr/local/bin/")
+# Add directories to $PATH
+
+
 PROFILE_FILE="$HOME/.profile"
 PATH_ADDITION=""
 
