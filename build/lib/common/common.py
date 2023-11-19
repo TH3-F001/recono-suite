@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import re
 import requests
 import socket
-import pty
 
 
 def get_lines_from_file(filename):
@@ -192,31 +191,54 @@ def hash_object(input_object):
     return m.hexdigest()
 
 
-def run_command(cmd, output_path=False, retries=5, debug=True, env=None):
+def run_command(cmd, output_path=False, retries=5, shell=False, debug=True, env=None):
+    commands = [c.strip() for c in cmd.split('|')]
     for i in range(retries):
         try:
-            master, slave = pty.openpty()
-            p = subprocess.Popen(cmd, stdin=slave, stdout=slave, stderr=slave, shell=True, env=env)
-            os.close(slave)
-            stdout, stderr = os.read(master, 2048).decode('utf-8'), ''
-            os.close(master)
+            processes = []
+            prev_stdout = None
+            start_time = time.time()
 
-            p.wait()
+            for command in commands:
+                if shell:
+                    input_command = command
+                else:
+                    input_command = command.split()
+
+                p = subprocess.Popen(input_command, stdin=prev_stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell, env=env)
+                if prev_stdout:
+                    prev_stdout.close()
+                prev_stdout = p.stdout
+                processes.append(p)
+
+            stdout, stderr = processes[-1].communicate()
+            runtime = get_runtime(start_time)
+
+            for p in processes:
+                p.wait()
+
+            last_process = processes[-1]
             result = {
                 'stdin': cmd,
-                'stdout': stdout,
-                'stderr': stderr,
-                'returncode': p.returncode
+                'stdout': stdout.decode('utf-8'),
+                'stderr': stderr.decode('utf-8'),
+                'returncode': last_process.returncode,
+                'runtime': runtime
             }
 
-            if p.returncode != 0:
-                handle_error(f'"{cmd}" failed on attempt {i + 1}: {stderr}')
+            if last_process.returncode != 0:
+                handle_error(f'"{cmd}" failed on attempt {i + 1}: {stderr.decode("utf-8")}')
+                sleep_time = random.uniform(0.1, 3)
+                time.sleep(sleep_time)
             else:
                 if output_path:
-                    with open(output_path, 'w') as f:
+                    with open(output_path, 'wb') as f:
                         f.write(stdout)
                 if debug:
-                    print(f'Command: {cmd}\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}\nReturn Code: {p.returncode}')
+                    indented_stdout = indent_text(result['stdout'])
+                    indented_stderr = indent_text(result['stderr'])
+                    print(f'\tCommand:\n\t\t{cmd}\n\tSTDOUT:\n{indented_stdout}\n\tSTDERR:\n{indented_stderr}\n\tRuntime:\n\t\t{runtime}\n\tReturn Code:\n\t\t{last_process.returncode}')
+                print(f'\t"{cmd}" has completed successfully')
                 return result
 
         except Exception as e:

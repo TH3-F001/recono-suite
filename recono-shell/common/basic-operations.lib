@@ -1,0 +1,143 @@
+#!/bin/bash
+
+
+# ---------------- Common Checks ---------------- #
+
+# If arg exists return 0, else return 1
+check_argument() {
+    if [ -z "$1" ]; then
+        return 1
+    fi
+
+    return 0
+}
+
+command_exists() {
+    local CMD=$1
+    if ! check_argument "$CMD"; then
+        print_error "command_exists expects a command as an argument"
+        return 1
+    fi
+
+    if command -v "$CMD" &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+file_exists() {
+    local FILEPATH=$1
+    if ! check_argument "$FILEPATH"; then
+        print_error "file_exists expects a command as an argument"
+        return 1
+    fi
+
+    if [ -f "$FILEPATH" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+directory_exists() {
+    local DIRPATH=$1
+    if ! check_argument "$DIRPATH"; then
+        print_error "directory_exists expects a directory path as an argument"
+        return 1
+    fi
+
+    if [ -d "$DIRPATH" ]; then
+        return 0  # Directory exists
+    else
+        return 1  # Directory does not exist
+    fi
+}
+
+file_is_executable() {
+    local FILEPATH=$1
+    if ! check_argument "$FILEPATH"; then
+        print_error "file_is_executable expects a filepath as an argument"
+        return 1
+    fi
+
+    if [ -f "$FILEPATH" ] && [ -x "$FILEPATH" ]; then
+        return 0  # File exists and is executable
+    else
+        return 1  # File does not exist or is not executable
+    fi
+}
+
+is_in_path() {
+    local DIR_PATH=$1
+    if ! check_argument "$DIR_PATH"; then
+        print_error "is_in_path expects a directory path as an argument"
+        return 1
+    fi
+
+    if [[ ":$PATH:" != *":$DIR_PATH:"* ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+
+# ---------------- Common Utilities  ---------------- #
+
+check_and_run_script() {
+    SCRIPT=$1
+    if ! check_argument "$SCRIPT"; then
+        print_error "check_and_run_script expects a script as an argument"
+        return 1
+    fi
+
+    if file_is_executable "$SCRIPT"; then
+        "$SCRIPT"
+        if [ $? -ne 0 ]; then
+            print_error "The $SCRIPT failed to execute properly"
+            return 1
+        fi
+    else
+        print_error "The script $SCRIPT does not exist or is not executable."
+        return 1
+    fi
+    return 0
+}
+
+
+
+# ---------------- Print Functions  ---------------- #
+print_error() {
+  local MSG=$1
+  if check_argument $MSG; then
+    echo -e "❌ [ERROR]:\t$MSG!"
+    return 0
+  fi
+
+  return 1
+}
+
+print_success() {
+    local MSG=$1
+    if check_argument $MSG; then
+        echo -e "✅ [SUCCESS]:\t$MSG!"
+        return 0
+    fi
+
+    return 1
+}
+
+
+# ---------------- String Operations  ---------------- #
+
+capitalize() {
+    local CAPITALIZED_STRING=''
+    if check_argument $1; then
+        CAPITALIZED_STRING=$(echo "$1" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2));}1')
+        echo "$CAPITALIZED_STRING"
+        return 0
+    fi
+
+    return 1
+}

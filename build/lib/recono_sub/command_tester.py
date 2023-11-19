@@ -13,7 +13,7 @@ config = common.get_config(config_file)
 
 cmd = SubdomainRunner(output_directory, config)
 
-cmd.amass(domains)                                                    # 
+# cmd.amass(domains)                                                    # 
 # cmd.assetfinder(domains)                                              # 
 # cmd.bbot(domains)                                                     # 
 # cmd.c99_subdomain_finder(domains)                                     # 

@@ -1,0 +1,13 @@
+requests
+bs4
+toml
+shodan
+distro
+termcolor==1.1.0
+argparse==1.4.0
+beautifulsoup4==4.6.3
+requests==2.21.0
+htmlmin==0.1.12
+tldextract==2.2.0
+colorama==0.4.4
+cffi

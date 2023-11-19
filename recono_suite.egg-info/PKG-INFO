@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: recono-suite
+Version: 0.2
+Summary: A series of multi-threaded, multi-processed tools for automating bug bounty recon.
+Home-page: https://github.com/TH3-F001/recono-suite
+Author: Th3_F001
+Keywords: recon,security,bounty,subdomains
+Requires-Python: >=3.10
+Requires-Dist: requests
+Requires-Dist: bs4
+Requires-Dist: toml
+Requires-Dist: shodan
+Requires-Dist: distro
+Requires-Dist: termcolor==1.1.0
+Requires-Dist: argparse==1.4.0
+Requires-Dist: beautifulsoup4==4.6.3
+Requires-Dist: requests==2.21.0
+Requires-Dist: htmlmin==0.1.12
+Requires-Dist: tldextract==2.2.0
+Requires-Dist: colorama==0.4.4
+Requires-Dist: cffi

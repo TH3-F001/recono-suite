@@ -43,14 +43,14 @@ def initialize_file_structure_requirements():
                 'active_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
                 'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -passive -json <OUT_PATH>",
                 'domain_arg_type': 'domain_file',
-                'run_command_args': {'shell': False, 'env': os.environ}
+                'run_command_args': {'shell': False, 'env': 'os.environ'}
             },
             'assetfinder': {
                 'binary_path': os.path.join(go_bin_path, 'assetfinder'),
                 'output_extension': 'txt',
-                'passive_cmd': "<BINARY> enum -df <DOMAIN_ARG> -rf <RESOLVER_FILE> -rqps 10 -v -active -json <OUT_PATH>",
+                'passive_cmd': "<BINARY> --subs-only <DOMAIN_ARG>",
                 'domain_arg_type': 'single_domain',
-                'run_command_args': {'shell': False, 'out_path': True, 'env': 'os.environ'}
+                'run_command_args': {'shell': True, 'out_path': True, 'env': 'os.environ'}
             },
             'bbot': {
                 'binary_path': os.path.join(pipx_path, 'bbot'),
@@ -100,7 +100,7 @@ def initialize_file_structure_requirements():
             'shuffledns': {
                 'binary_path': os.path.join(go_bin_path,'shuffledns'),
                 'output_extension': "json",
-                'active_cmd': "<BINARY> -d <DOMAIN_ARG> -w <WORDLIST_FILE> -r <RESOLVER_FILE> -json -o <OUT_PATH> -m <MASSDNS_PATH>",
+                'active_cmd': "<BINARY> -d <DOMAIN_ARG> -w <WORDLIST_FILE> -r <RESOLVER_FILE> -json -o <OUT_PATH> -m <MASSDNS_PATH> -t 1000",
                 'domain_arg_type': 'single_domain',
                 'run_command_args': {'shell': False}
             },

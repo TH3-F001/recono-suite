@@ -1,0 +1,2 @@
+[console_scripts]
+recono-sub = recono_sub.recono_sub:main

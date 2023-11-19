@@ -46,14 +46,14 @@ class SubdomainRunner:
             out_path = os.path.join(self.out_dir, f'{tool_name}_{domains_hash}{out_ext}')
             supplemental_out_path = out_path if cmd_requires_outpath else None
             cmd = self.build_command(tool_name, domain_input, out_path, mode)
-            result = common.run_command(cmd, env=env_arg, output_path=supplemental_out_path, debug=True)
+            result = common.run_command(cmd, shell=shell_arg, env=env_arg, output_path=supplemental_out_path, debug=True)
         else:
             with ThreadPoolExecutor(max_workers=self.threads) as executor:
                 for domain in domains:
                     out_path = os.path.join(self.out_dir, f'{tool_name}_{domain}{out_ext}')
                     supplemental_out_path = out_path if cmd_requires_outpath else None
                     cmd = self.build_command(tool_name, domain, out_path, mode)
-                    executor.submit(common.run_command(cmd, env=env_arg, output_path=supplemental_out_path, debug=True))
+                    executor.submit(common.run_command(cmd, shell=shell_arg, env=env_arg, output_path=supplemental_out_path, debug=True))
 
     def build_command(self, tool_name, domain_input, out_path, mode):
         tool_config = self.config['tools'][tool_name]

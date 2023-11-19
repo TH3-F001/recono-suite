@@ -1,0 +1,143 @@
+#!/bin/bash
+
+source ../common/basic-operations.lib
+
+# ----------- Package Maps ----------- #
+
+declare -A APT_PACKAGES=(
+    [pip3]="python3-pip"
+    [go]="golang"
+    [make]="build-essential"
+)
+
+declare -A YUM_PACKAGES=(
+    [python3]='sudo yum install python3 -y '
+    [pip3]="sudo yum install python3-pip -y "
+    [go]="sudo yum install golang -y "
+    [git]="sudo yum install git -y"
+    [make]='sudo yum groupinstall "Development Tools" -y'
+    [curl]="sudo yum install curl -y"
+    [wget]="sudo yum install wget -y"
+)
+
+declare -A DNF_PACKAGES=(
+    [python3]='sudo dnf install python3 -y '
+    [pip3]="sudo dnf install python3-pip -y "
+    [go]="sudo dnf install golang -y "
+    [git]="sudo dnf install git -y"
+    [make]='sudo dnf groupinstall "Development Tools" -y'
+    [curl]="sudo dnf install curl -y"
+    [wget]="sudo dnf install wget -y"
+)
+
+declare -A PACMAN_PACKAGES=(
+    [pip3]="python-pip"
+    [pipx]="python-pipx"
+)
+
+declare -A ZYPPER_PACKAGES=(
+    [pip3]="python3-pip"
+)
+
+declare -A EMERGE_PACKAGES=(
+    [python3]="dev-lang/python3.11"
+    [pip3]="dev=python/pip"
+    [go]="dev-lang/go"
+    [git]="dev-vcs/git"
+    [make]="build"
+    [wget]="net-misc/wget"
+)
+
+
+# ----------- Boilerplate Functions ----------- #
+
+generic_install_package() {
+  local PACKAGE_NAME=$1
+  local INSTALL_COMMAND=$2
+
+  if ! check_argument "$PACKAGE_NAME" || ! check_argument "$INSTALL_COMMAND"; then
+    print_error "Missing Required Arguments In 'generic_install_package'"
+    return 1
+  fi
+  
+  echo "📦 Installing $1..."
+
+  if eval "$INSTALL_COMMAND"; then 
+    print_success "Successfully Installed $PACKAGE_NAME"
+  else
+    print_error "A problem occured while installing $PACKAGE_NAME"
+    return 1
+  fi
+}
+
+
+# ----------- Package Manager Install Functions ----------- #
+install_with_apt() {
+  local PACKAGES=("$@")
+  sudo apt update
+  for PKG in "${PACKAGES[@]}"; do
+    APT_PKG=${APT_PACKAGES[$PKG]:-$PKG}
+    generic_install_package "$PKG" "sudo apt install -y $APT_PKG"
+  done
+}
+
+install_with_yum() {
+  local PACKAGES=("$@")
+  sudo yum check-update
+
+  for PKG in "${PACKAGES[@]}"; do
+    YUM_CMD=${YUM_PACKAGES[$PKG]:-"sudo yum install $PKG -y"}
+    generic_install_package "$PKG" "$YUM_CMD"
+  done
+}
+
+install_with_dnf() {
+  local PACKAGES=("$@")
+  sudo dnf check-update
+
+  for PKG in "${PACKAGES[@]}"; do
+    DNF_CMD=${DNF_PACKAGES[$PKG]:-"sudo dnf install $PKG -y"}
+    generic_install_package "$PKG" "$DNF_CMD"
+  done
+}
+
+install_with_pacman() {
+  local PACKAGES=("$@")
+  for PKG in "${PACKAGES[@]}"; do
+    PACMAN_PKG=${PACMAN_PACKAGES[$PKG]:-$PKG}
+    generic_install_package "$PKG" "sudo pacman -S --noconfirm $PACMAN_PKG"
+  done
+}
+
+install_with_zypper() {
+  local PACKAGES=("$@")
+  sudo zypper refresh
+
+  for PKG in "${PACKAGES[@]}"; do
+    ZYPPER_PKG=${ZYPPER_PACKAGES[$PKG]:-$PKG}
+    generic_install_package "$PKG" "sudo zypper install -y $ZYPPER_PKG"
+  done
+}
+
+install_with_emerge() {
+  local PACKAGES=("$@")
+  sudo emerge --sync
+  for PKG in "${PACKAGES[@]}"; do
+    EMERGE_PKG=${EMERGE_PACKAGES[$PKG]:-$PKG}
+    generic_install_package "$PKG" "sudo emerge $EMERGE_PKG"
+  done
+}
+
+install_with_snap() {
+    local PACKAGE_NAME=$1
+    local SNAP_COMMAND="sudo snap install $PACKAGE_NAME"
+    generic_install_package "$PACKAGE_NAME" "$SNAP_COMMAND"
+}
+
+install_with_flatpak() {
+    local PACKAGE_NAME=$1
+    local FLATPAK_COMMAND="flatpak install -y $PACKAGE_NAME"
+    generic_install_package "$PACKAGE_NAME" "$FLATPAK_COMMAND"
+}
+
+
