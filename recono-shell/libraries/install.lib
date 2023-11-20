@@ -1,6 +1,7 @@
 #!/bin/bash
+LIB_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-source ../common/basic-operations.lib
+source "$LIB_SCRIPT_DIR/basic-operations.lib"
 
 # ----------- Package Maps ----------- #
 
@@ -73,7 +74,7 @@ generic_install_package() {
 set_shell_script_permissions() {
   local DIRECTORY=$1
 
-  echo "🖥️ Setting permissions for shell scripts in $DIRECTORY"
+  echo -e "\t 🖥️ Setting permissions for shell scripts in $DIRECTORY"
 
   if ! check_argument "$DIRECTORY"; then
       print_error "set_shell_script_permissions expects a directory as an argument"

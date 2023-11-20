@@ -1,17 +1,18 @@
 #!/bin/bash
 
-SCRIPT_PATH=$(realpath "$0")
-SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+LIB_SCRIPT_DIR="$SCRIPT_DIR/libraries"
 INSTALLERS_DIR="$SCRIPT_DIR/installers"
 CONFIG_DIR="$HOME/.config/recono-shell"
 CONFIG_FILE="$CONFIG_DIR/config.txt"
 SRC_WORDLIST_DIR="$SCRIPT_DIR/wordlists"
 DST_WORDLIST_DIR="$CONFIG_DIR/wordlists"
+LOG_DIR="$CONFIG_DIR/logs"
 
 
-source "$SCRIPT_DIR/common/basic-operations.lib"
-source "$SCRIPT_DIR/common/recono-shell.lib"
-source "$INSTALLERS_DIR/install.lib"
+source "$LIB_SCRIPT_DIR/common/basic-operations.lib"
+source "$LIB_SCRIPT_DIR/common/recono-shell.lib"
+source "$LIB_SCRIPT_DIR/install.lib"
 
 echo "📦 Beginning recono-shell installation..."
 
@@ -25,7 +26,7 @@ set_shell_script_permissions "$SCRIPT_DIR"
 # Install installation dependencies and needed tools
 check_and_run_script "$INSTALLERS_DIR/install-all-dependencies.sh"
 
-Prompt for API keys
+# Prompt for API keys
 SHODAN_API_KEY=$(prompt_for_api_key "Shodan")
 GITHUB_API_KEY=$(prompt_for_api_key "Github")
 C99_API_KEY=$(prompt_for_api_key "C99")
@@ -40,9 +41,8 @@ get_trusted_dns_resolver_list "$SRC_WORDLIST_DIR/trusted-resolvers.txt"
 get_untrusted_dns_resolver_list "$SRC_WORDLIST_DIR/untrusted-resolvers.txt"
 
 # Create Config Directory
-if ! directory_exists "$DST_WORDLIST_DIR"; then
-    mkdir -p "$DST_WORDLIST_DIR"
-fi
+mkdir -p "$DST_WORDLIST_DIR"
+mkdir -p $LOG_DIR
 
 # Move Worldist files to .config
 echo "Copying List files to $DST_WORDLIST_DIR..."
@@ -60,6 +60,9 @@ done
     echo "TRUSTED_RESOLVER_FILE=$TRUSTED_RESOLVER_FILE"
     echo "UNTRUSTED_RESOLVER_FILE=$UNTRUSTED_RESOLVER_FILE"
     echo "SUBDOMAIN_MASTER_LIST=$SUBDOMAIN_MASTER_LIST"
+    echo "LOG_DIR=$LOG_DIR"
 } > "$CONFIG_FILE"
 
 chmod 600  "$CONFIG_FILE"
+
+# TODO copy all files in this directory and below, into .config

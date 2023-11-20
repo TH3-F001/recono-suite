@@ -105,13 +105,25 @@ check_and_run_script() {
     return 0
 }
 
+run_and_indent() {
+    local COMMAND="$*"
+    if ! check_argument "$COMMAND"; then
+        print_error "run_and_indent expects a command as an argument"
+        return 1
+    fi
+
+    $COMMAND | while IFS= read -r LINE; do
+        echo -e "\t$LINE"
+    done
+}
+
 
 
 # ---------------- Print Functions  ---------------- #
 print_error() {
   local MSG=$1
   if check_argument $MSG; then
-    echo -e "❌ [ERROR]:\t$MSG!"
+    echo -e "\t ❌ [ERROR]:\t$MSG!"
     return 0
   fi
 
@@ -121,7 +133,7 @@ print_error() {
 print_success() {
     local MSG=$1
     if check_argument $MSG; then
-        echo -e "✅ [SUCCESS]:\t$MSG!"
+        echo -e "\t ✅ [SUCCESS]:\t$MSG!"
         return 0
     fi
 
@@ -142,12 +154,70 @@ capitalize() {
     return 1
 }
 
+array_to_comma_list() {
+    local -n ARRAY=$1
+    if ! check_argument $ARRAY;then
+        print_error "array_to_comma_list expects an array as an argument"
+        return 1
+    fi
+    local IFS=','
+    echo "${ARRAY[*]}"
+}
+
+# syntax for calling: < readarray -t my_array < <(comma_list_to_array "$cs_string") >
+comma_list_to_array() {
+    local LIST=$1
+    if ! check_argument $LIST;then
+        print_error "comma_list_to_array expects an comma separated string as an argument"
+        return 1
+    fi
+    local IFS=','  
+    read -ra ARRAY <<< "$LIST"  
+    echo "${ARRAY[@]}"  
+}
+
+hash_value() {
+    local VALUE=$1
+    if ! check_argument "$VALUE"; then
+        print_error "hash_value expects an value to hash"
+        return 1
+    fi
+
+    echo -n "$ARGUMENT" | md5sum | awk '{print $1}'
+}
+
+file_to_comma_list() {
+    local FILEPATH=$1
+    local LIST_STRING=""
+
+    if ! check_argument "$FILEPATH"; then
+        print_error "file_to_comma_list expects a file path as an argument"
+        return 1
+    fi
+
+    if ! file_exists $FILEPATH; then
+        print_error "File Not Found: $FILEPATH"
+        return 1
+    fi
+
+    while IFS= read -r line; do
+        if [ -z "$LIST_STRING" ]; then
+            LIST_STRING="$line"
+        else
+            LIST_STRING="$LIST_STRING,$line"
+        fi
+    done < "$FILEPATH"
+
+    echo "$LIST_STRING"
+
+}
+
 
 # ---------------- Grab External Data ----------------#
 
 get_trusted_dns_resolver_list() {
     local OUTPUT_FILE=$1
-    if ! check_argument $OUTPUT_FILE; then
+    if ! check_argument "$OUTPUT_FILE"; then
         print_error "get_trusted_dns_resolver_list expects an output file as an argument"
         return 1
     fi

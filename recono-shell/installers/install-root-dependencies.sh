@@ -1,10 +1,10 @@
 #!/bin/bash
 
-SCRIPT_PATH=$(realpath "$0")
-SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 
-source "$SCRIPT_DIR/../common/basic-operations.lib"
-source "$SCRIPT_DIR/install.lib"
+source "$LIB_SCRIPT_DIR/basic-operations.lib"
+source "$LIB_SCRIPT_DIR/install.lib"
 
 declare -a REQUIRED_DEPENDENCIES=("pip3" "pipx" "go" "git" "make" "curl" "wget")
 declare -a ABSENT_DEPENDENCIES
@@ -30,10 +30,10 @@ python_requirements_are_met() {
 
     PYTHON_VERSION=$(python3 -V | cut -d ' ' -f 2)
     if [[ "$(printf '%s\n' "3.10" "$PYTHON_VERSION" | sort -V | head -n1)" == "3.10" ]]; then
-        echo "Python version is 3.10 or higher. Continuing..."
+        echo -e "\t ✨ Python version is 3.10 or higher. Continuing..."
         return 0
     else
-        echo "Python version is lower than 3.10. Adding to install list..."
+        echo -e "\t Python version is lower than 3.10. Adding to install list..."
         return 1
     fi
 }
@@ -82,9 +82,6 @@ fi
 
 # Make a final check to ensure all dependencies are installed
 SUCCESS=0
-if ! python_requirements_are_met; then 
-    SUCCESS=1
-fi
 
 for DEP in "${REQUIRED_DEPENDENCIES[@]}"; do
     if ! command_exists "$DEP"; then
