@@ -111,6 +111,26 @@ add_directories_to_path() {
   fi
 }
 
+prompt_for_api_key() {
+  local API_NAME=$1
+  if ! check_argument $API_NAME; then
+    print_error "prompt_for_api_key expects an API name as an argument"
+    return 1
+  fi 
+
+  local API_KEY
+
+  while true; do
+    read -rp "Please enter your $API_NAME API Key: " API_KEY
+    if [[ -z "$API_KEY" ]]; then
+      print_error "API key can't be empty. please enter a valid $API_NAME API key"
+    else
+      break
+    fi
+  done
+  echo "$API_KEY"
+}
+
 # ----------- Package Manager Install Functions ----------- #
 install_with_apt() {
   local PACKAGES=("$@")
