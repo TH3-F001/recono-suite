@@ -164,15 +164,15 @@ array_to_comma_list() {
     echo "${ARRAY[*]}"
 }
 
-# syntax for calling: < readarray -t my_array < <(comma_list_to_array "$cs_string") >
+# syntax for calling: MY_ARRAY=($(comma_list_to_array "$COMMA_LIST"))
+
 comma_list_to_array() {
     local LIST=$1
-    if ! check_argument $LIST;then
+    if ! check_argument "$LIST"; then
         print_error "comma_list_to_array expects an comma separated string as an argument"
         return 1
     fi
-    local IFS=','  
-    read -ra ARRAY <<< "$LIST"  
+    IFS=',' read -ra ARRAY <<< "$LIST"
     echo "${ARRAY[@]}"  
 }
 

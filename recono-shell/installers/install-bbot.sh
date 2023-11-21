@@ -15,3 +15,5 @@ if ! command_exists bbot; then
 else
     echo -e "\t✨ Bbot is already installed!"
 fi
+
+
