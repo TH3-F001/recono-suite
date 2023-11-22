@@ -15,6 +15,9 @@ source "$LIB_SCRIPT_DIR/common/recono-shell.lib"
 source "$LIB_SCRIPT_DIR/install.lib"
 
 echo "📦 Beginning recono-shell installation..."
+# Create Config Directory
+mkdir -p "$DST_WORDLIST_DIR"
+mkdir -p $LOG_DIR
 
 # Add directories to $PATH
 declare -a ADDITIONAL_PATHS=("$HOME/go/bin" "/usr/local/go/bin" "/usr/local/bin/")
@@ -40,9 +43,7 @@ SUBDOMAIN_MASTER_LIST="$DST_WORDLIST_DIR/subdomain-master.txt"
 get_trusted_dns_resolver_list "$SRC_WORDLIST_DIR/trusted-resolvers.txt"
 get_untrusted_dns_resolver_list "$SRC_WORDLIST_DIR/untrusted-resolvers.txt"
 
-# Create Config Directory
-mkdir -p "$DST_WORDLIST_DIR"
-mkdir -p $LOG_DIR
+
 
 # Move Worldist files to .config
 echo "Copying List files to $DST_WORDLIST_DIR..."

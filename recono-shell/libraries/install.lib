@@ -47,6 +47,7 @@ declare -A EMERGE_PACKAGES=(
     [git]="dev-vcs/git"
     [make]="build"
     [wget]="net-misc/wget"
+    [expect]="dev-tcltk/expect"
 )
 
 

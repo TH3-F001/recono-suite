@@ -2,7 +2,8 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
-
+SUPP_DIR="$SCRIPT_DIR/../supplemental"
+AUTORESPOND_SCRPT="$SUPP_DIR/autorespond.exp"
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
 import_config_file
@@ -29,22 +30,19 @@ fi
 
 echo -e "⚡ Running Bbot against $DOMAINS..."
 
-OUT_PRE=$(hash_value "$DOMAINS")
-TRF=$TRUSTED_RESOLVER_FILE
-UTRF=$UNTRUSTED_RESOLVER_FILE
-DNSQPS=20                           # Total DNS Queries Per Second
-URQPS=10                            # Total Untrusted DNS Queries Per Second
-TRQPS=10                            # Total Trusted DNS Queries Per Second
-LOG="$LOG_DIR/bbot_$OUT_PRE.log"
 mkdir -p "$OUTPUT_DIR"
 
-# BBOT_COMMAND="bbot enum -d \"$DOMAINS\" -dns-qps \"$DNSQPS\" -log \"$LOG\" -oA \"$OUT_PRE\" -dir \"$OUTPUT_DIR\""
+BBOT=$(which bbot)
+BBOT_CMD="$BBOT -t \"$DOMAINS\" -f subdomain-enum --force --yes --silent --ignore-failed-deps -o \"$OUTPUT_DIR\" -rf"
 
-# if [ "$active_mode" = true ]; then
-#     BBOT_COMMAND+=" -active"
-# else BBOT_COMMAND+=" -passive"
+if [ "$active_mode" = true ]; then
+    BBOT_CMD+=" active"
+else BBOT_CMD+=" passive"
+fi
 
-# BBOT_COMMAND+=" -rf \"$UTRF\" -rqps \"$URQPS\" -trf \"$TRF\" -trqps \"$TRQPS\""
+if eval "$BBOT_CMD"; then 
+    print_success "Bbot has completed successfully"
+else print_error "Bbot has failed to complete"
+fi
+# $AUTORESPOND_SCRPT "$BBOT_CMD" "\[SUCC\] Scan ready\. Press enter to execute \w+" "\r"
 
-run_and_indent $BBOT_COMMAND
-print_success "Bbot has completed successfully"
