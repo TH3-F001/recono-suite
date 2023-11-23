@@ -31,9 +31,8 @@ else
     echo -e "\tSubdomainizer is already installed!"
 fi
 
-if ! command_exists subdomainizer; then
+if command_exists subdomainizer; then
     print_success "SubDomainizer successfully installed"
-    
 else
     print_error "An problem occurred while installing SubDomainizer"
     exit 1

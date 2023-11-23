@@ -18,7 +18,7 @@ declare -a INSTALLER_SCRIPTS=(
 "$SCRIPT_DIR/install-shosubgo.sh"
 "$SCRIPT_DIR/install-shuffledns.sh"
 "$SCRIPT_DIR/install-subdomainizer.sh"
-"$SCRIPT_DIR/install-subdfinder.sh"
+"$SCRIPT_DIR/install-subfinder.sh"
 "$SCRIPT_DIR/install-waybackurls.sh"
 )
 
