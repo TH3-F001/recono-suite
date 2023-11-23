@@ -1,9 +1,7 @@
 #!/bin/bash
+LIB_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-SCRIPT_PATH=$(realpath "$0")
-SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
-
-source "$SCRIPT_DIR/../common/basic-operations.lib"
+source "$LIB_SCRIPT_DIR/basic-operations.lib"
 
 # ----------- Package Maps ----------- #
 
@@ -49,6 +47,7 @@ declare -A EMERGE_PACKAGES=(
     [git]="dev-vcs/git"
     [make]="build"
     [wget]="net-misc/wget"
+    [expect]="dev-tcltk/expect"
 )
 
 
@@ -76,7 +75,7 @@ generic_install_package() {
 set_shell_script_permissions() {
   local DIRECTORY=$1
 
-  echo "🖥️ Setting permissions for shell scripts in $DIRECTORY"
+  echo -e "\t 🖥️ Setting permissions for shell scripts in $DIRECTORY"
 
   if ! check_argument "$DIRECTORY"; then
       print_error "set_shell_script_permissions expects a directory as an argument"
@@ -112,6 +111,26 @@ add_directories_to_path() {
           echo "$EXPORT_LINE" >> "$PROFILE_FILE"
       fi
   fi
+}
+
+prompt_for_api_key() {
+  local API_NAME=$1
+  if ! check_argument $API_NAME; then
+    print_error "prompt_for_api_key expects an API name as an argument"
+    return 1
+  fi 
+
+  local API_KEY
+
+  while true; do
+    read -rp "Please enter your $API_NAME API Key: " API_KEY
+    if [[ -z "$API_KEY" ]]; then
+      print_error "API key can't be empty. please enter a valid $API_NAME API key"
+    else
+      break
+    fi
+  done
+  echo "$API_KEY"
 }
 
 # ----------- Package Manager Install Functions ----------- #

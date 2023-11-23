@@ -1,0 +1,48 @@
+#!/usr/bin/expect
+
+# Check if the correct number of arguments is provided
+if { $argc != 3 } {
+    puts "Usage: autorespond.sh <command> <call> <response>"
+    exit 1
+}
+
+# Extract arguments
+set command [lindex $argv 0]
+set call [lindex $argv 1]
+set response [lindex $argv 2]
+
+# Split the command into a list of arguments
+set command_args [split $command " "]
+
+# Execute the command
+spawn {*}$command_args  ;# Use {*}$ to expand the list
+
+# Set a timeout for the call (adjust the timeout duration as needed)
+set timeout 60  ;# 60 seconds timeout (adjust as needed)
+
+# Wait for the call or timeout
+expect {
+    -re $call {
+        # The expected pattern appeared, send the response
+        send "$response\r"
+    }
+    timeout {
+        # Timeout occurred, you can handle this case as needed
+        puts "Timed out waiting for the expected pattern."
+        # You can exit or take other actions here
+        exit 1
+    }
+}
+
+# Handle the specific command prompt
+expect {
+    -re {\[SUCC\] Scan ready\. Press enter to execute \w+} {
+        # Respond to the prompt with the enter key
+        send "\r"
+        # Continue with the script
+        exp_continue
+    }
+}
+
+# Allow the spawned process to continue and interact as normal
+interact
