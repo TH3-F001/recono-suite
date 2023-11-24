@@ -94,7 +94,7 @@ set_shell_script_permissions() {
 
 add_directories_to_path() {
   local ADDITIONAL_PATHS=("$@") 
-  local PROFILE_FILE="$HOME/.profile"
+  local PROFILE_FILE="/etc/profile.d/added-paths.sh"
   local PATH_ADDITION=""
 
   for DIR in "${ADDITIONAL_PATHS[@]}"; do
@@ -108,7 +108,7 @@ add_directories_to_path() {
       export PATH="$PATH_ADDITION$PATH"
       EXPORT_LINE="export PATH=\"$PATH_ADDITION\$PATH\""
       if ! grep -qF "$PATH_ADDITION" "$PROFILE_FILE"; then
-          echo "$EXPORT_LINE" >> "$PROFILE_FILE"
+          echo -e "#!/bin/bash\n $EXPORT_LINE" | sudo tee "$PROFILE_FILE"
       fi
   fi
 }

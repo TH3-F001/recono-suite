@@ -29,7 +29,7 @@ if ! command_exists massdns; then
 fi
 
 
-echo -e "\n📦 Installing ShuffleDNS..."
+# echo -e "\n📦 Installing ShuffleDNS..."
 
 if ! command_exists shuffledns; then
     INSTALL_COMMAND="go install github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest"

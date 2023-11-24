@@ -15,6 +15,5 @@ recono_suite.egg-info/dependency_links.txt
 recono_suite.egg-info/entry_points.txt
 recono_suite.egg-info/requires.txt
 recono_suite.egg-info/top_level.txt
-wordlists/subdomain_master.txt
 wordlists/test_install.txt
 wordlists/testdomains.txt

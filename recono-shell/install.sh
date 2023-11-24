@@ -10,8 +10,8 @@ DST_WORDLIST_DIR="$CONFIG_DIR/wordlists"
 LOG_DIR="$CONFIG_DIR/logs"
 
 
-source "$LIB_SCRIPT_DIR/common/basic-operations.lib"
-source "$LIB_SCRIPT_DIR/common/recono-shell.lib"
+source "$LIB_SCRIPT_DIR/basic-operations.lib"
+source "$LIB_SCRIPT_DIR/recono-shell.lib"
 source "$LIB_SCRIPT_DIR/install.lib"
 
 echo "📦 Beginning recono-shell installation..."
