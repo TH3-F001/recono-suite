@@ -33,16 +33,19 @@ echo -e "⚡ Running Bbot against $DOMAINS..."
 mkdir -p "$OUTPUT_DIR"
 
 BBOT=$(which bbot)
-BBOT_CMD="$BBOT -t \"$DOMAINS\" -f subdomain-enum --force --yes --silent --ignore-failed-deps -o \"$OUTPUT_DIR\" -rf"
+BBOT_CMD="$BBOT -t $DOMAINS -f subdomain-enum --force --yes --silent --ignore-failed-deps -o $OUTPUT_DIR -rf"
 
 if [ "$active_mode" = true ]; then
     BBOT_CMD+=" active"
-else BBOT_CMD+=" passive"
+else
+    BBOT_CMD+=" passive"
 fi
 
-if eval "$BBOT_CMD"; then 
+if run_and_indent "$BBOT_CMD"; then 
     print_success "Bbot has completed successfully"
-else print_error "Bbot has failed to complete"
+else 
+    print_error "An error occurred while running bbot"
 fi
+
 # $AUTORESPOND_SCRPT "$BBOT_CMD" "\[SUCC\] Scan ready\. Press enter to execute \w+" "\r"
 

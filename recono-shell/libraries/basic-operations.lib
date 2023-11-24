@@ -111,11 +111,38 @@ run_and_indent() {
         print_error "run_and_indent expects a command as an argument"
         return 1
     fi
-
     $COMMAND | while IFS= read -r LINE; do
         echo -e "\t$LINE"
     done
+
+    local EXIT_STATUS=$?
+    if [ $EXIT_STATUS -eq 0 ]; then
+        return 0  
+    else
+        return 1 
+    fi
 }
+
+run_async_commands() {
+    local COMMANDS=("$@")
+    local SUCCESS=true
+    local PIDS=()
+
+    for COMMAND in "${COMMANDS[@]}"; do
+        $COMMAND & 
+        local PID=$!
+        PIDS+=("$PID")
+    done
+
+    for PID in "${PIDS[@]}"; do
+        wait "$PID"
+        if [ $? -ne 0 ]; then
+            SUCCESS=false
+            print_error "Command '$COMMAND' failed."
+        fi
+    done 
+}
+
 
 
 
