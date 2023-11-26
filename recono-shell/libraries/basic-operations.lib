@@ -111,11 +111,12 @@ run_and_indent() {
         print_error "run_and_indent expects a command as an argument"
         return 1
     fi
-    $COMMAND | while IFS= read -r LINE; do
+
+    eval "$COMMAND" | while IFS= read -r LINE; do
         echo -e "\t$LINE"
     done
 
-    local EXIT_STATUS=$?
+    local EXIT_STATUS=${PIPESTATUS[0]}  # Capture the exit status of the eval command
     if [ $EXIT_STATUS -eq 0 ]; then
         return 0  
     else
@@ -123,13 +124,14 @@ run_and_indent() {
     fi
 }
 
+
 run_async_commands() {
     local COMMANDS=("$@")
-    local SUCCESS=true
+    local SUCCESS=0
     local PIDS=()
 
     for COMMAND in "${COMMANDS[@]}"; do
-        $COMMAND & 
+        eval "$COMMAND" &  # Use eval to interpret redirection
         local PID=$!
         PIDS+=("$PID")
     done
@@ -137,14 +139,76 @@ run_async_commands() {
     for PID in "${PIDS[@]}"; do
         wait "$PID"
         if [ $? -ne 0 ]; then
-            SUCCESS=false
+            SUCCESS=1
             print_error "Command '$COMMAND' failed."
         fi
     done 
+
+    return $SUCCESS
 }
 
+display_loading_animation() {
+    local APP=$1
+    local PID=$!
+    local delay=0.15
+    local emojis=('🌑' '🌒' '🌓' '🌔' '🌕' '🌖' '🌗' '🌘')
+    local i=0
 
+    while [ "$(ps a | awk '{print $1}' | grep $PID)" ]; do
+        printf "\t%s  " "${emojis[i]}"
+        sleep $delay
+        printf "\b\b\b\b\b"
+        ((i=(i+1)%8))
+    done
+    printf "    \b\b\b\b"
+}
 
+display_hacky_animation() {
+    local PID=$!
+    local delay=0.15
+    local emojis=('🌑' '🌒' '🌓' '🌔' '🌕' '🌖' '🌗' '🌘')
+    local i=0
+
+    # Save cursor position
+    tput sc
+
+    while [ "$(ps a | awk '{print $1}' | grep $PID)" ]; do
+        # Restore cursor position
+        tput rc
+        # Move cursor up one line
+        tput cuu1
+        # Print emoji
+        printf "\t%s  " "${emojis[i]}"
+        sleep $delay
+        # Erase to end of line
+        tput el
+        ((i=(i+1)%8))
+    done
+}
+
+generate_url_list_from_domains() {
+    local DOMAINS="$1"
+
+    if ! check_argument "$DOMAINS"; then
+        print_error "generate_url_list_from_domains expects a command as an argument"
+        return 1
+    fi
+
+    local SALT=$(tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 6)
+    local OUT_PRE=$(hash_value "$DOMAINS")
+    local URL_FILE="/tmp/url_$OUT_PRE$SALT"
+
+    OLD_IFS="$IFS"
+    IFS=','
+    read -ra DOMAIN_ARRAY <<< "$DOMAINS"
+    IFS="$OLD_IFS"
+
+    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
+        echo "http://$DOMAIN" >> "$URL_FILE"
+    done
+
+    echo "$URL_FILE"
+}
 
 # ---------------- Print Functions  ---------------- #
 print_error() {

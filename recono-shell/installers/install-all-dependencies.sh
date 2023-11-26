@@ -13,7 +13,6 @@ declare -a INSTALLER_SCRIPTS=(
 "$SCRIPT_DIR/install-bbot.sh"
 "$SCRIPT_DIR/install-github-subdomains.sh"
 "$SCRIPT_DIR/install-hakrawler.sh"
-"$SCRIPT_DIR/install-knockpy.sh"
 "$SCRIPT_DIR/install-shosubgo.sh"
 "$SCRIPT_DIR/install-shuffledns.sh"
 "$SCRIPT_DIR/install-subdomainizer.sh"

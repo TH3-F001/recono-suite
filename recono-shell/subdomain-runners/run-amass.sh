@@ -38,7 +38,7 @@ TRQPS=10                            # Total Trusted DNS Queries Per Second
 LOG="$LOG_DIR/amass_$OUT_PRE.log"
 mkdir -p "$OUTPUT_DIR"
 
-AMASS_COMMAND="amass enum -d $DOMAINS -dns-qps $DNSQPS -log $LOG -oA $OUT_PRE -dir $OUTPUT_DIR"
+AMASS_COMMAND="amass enum -d $DOMAINS -dns-qps $DNSQPS -log $LOG -dir $OUTPUT_DIR -silent"
 
 if [ "$active_mode" = true ]; then
     AMASS_COMMAND+=" -active"
@@ -48,9 +48,7 @@ fi
 
 AMASS_COMMAND+=" -rf $UTRF -rqps $URQPS -trf $TRF -trqps $TRQPS"
 
-
-
-if run_and_indent "$AMASS_COMMAND"; then
+if run_and_indent "$AMASS_COMMAND" ; then
     print_success "Amass has completed successfully"
 else
     print_error "An error occurred while running Amass"

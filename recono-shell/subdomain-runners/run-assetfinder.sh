@@ -9,7 +9,7 @@ DOMAINS=$1
 OUTPUT_DIR=$2
 
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
-    print_error "run-assetfinder-amass.sh expects a comma separated list of domains, and an output directory"
+    print_error "run-assetfinder.sh expects a comma separated list of domains, and an output directory"
     exit 1
 fi
 
@@ -19,17 +19,18 @@ mkdir -p "$OUTPUT_DIR" || { echo "Failed to create directory: $OUTPUT_DIR"; exit
 DOMAIN_LIST=($(comma_list_to_array "$DOMAINS"))
 CMDS=()
 
-
 for DOMAIN in "${DOMAIN_LIST[@]}"; do
     echo -e "\tRunning against $DOMAIN..."
     OUT_FILE="$OUTPUT_DIR/assetfinder_$DOMAIN.txt"
-    CMD="assetfinder --subs-only \"$DOMAIN\" \> \"$OUT_FILE\""
+    CMD="assetfinder --subs-only $DOMAIN > $OUT_FILE"
     CMDS+=("$CMD")
 done
 
 if run_async_commands "${CMDS[@]}"; then
     print_success "AssetFinder completed successfully"
 else 
-    print_error "An error occurred while running assetfinder"
-    return 1
+    print_error "An error occurred while running Assetfinder"
+    exit 1
 fi
+
+
