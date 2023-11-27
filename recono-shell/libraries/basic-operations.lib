@@ -259,12 +259,15 @@ array_to_comma_list() {
 
 comma_list_to_array() {
     local LIST=$1
+    local -n ARR=$2  
+
     if ! check_argument "$LIST"; then
-        print_error "comma_list_to_array expects an comma separated string as an argument"
+        print_error "comma_list_to_array expects a comma-separated string as an argument"
         return 1
     fi
-    IFS=',' read -ra ARRAY <<< "$LIST"
-    echo "${ARRAY[@]}"  
+
+    local IFS=',' 
+    read -ra ARR <<< "$LIST"
 }
 
 hash_value() {
@@ -300,9 +303,120 @@ file_to_comma_list() {
     done < "$FILEPATH"
 
     echo "$LIST_STRING"
-
 }
 
+file_to_array() {
+    local FILE=$1
+    local -n ARR=$2  # Create a nameref to the original array
+
+    if ! check_argument "$FILE"; then
+        print_error "file_to_array expects a file path as the first argument"
+        return 1
+    fi
+
+    if ! file_exists "$FILE"; then
+        print_error "File not found: $FILE"
+        return 1
+    fi
+
+    mapfile -t ARR < "$FILE"
+}
+
+sort_subdomain_file() {
+    local FILE=$1
+
+    if ! check_argument "$FILE"; then
+        print_error "sort_subdomain_file expects a file path as the first argument"
+        return 1
+    fi
+
+    if [[ ! -f "$FILE" ]]; then
+        echo "File not found: $FILE"
+        return 1
+    fi
+
+    awk -F '.' '{for (i=NF; i>0; i--) printf "%s.", $i; print ""}' "$FILE" | \
+    sort | \
+    awk -F '.' '{for (i=NF; i>0; i--) printf "%s.", $i; print ""}' | \
+    rev | cut -c 2- | rev | \
+    sed '/^./s///'
+}
+
+join_subdomain_files() {
+    local DOMAINS=$1
+    local IN_DIR=$2
+    local OUT_DIR=$3 
+    local CMD=$4
+
+    if ! check_argument "$DOMAINS" || ! check_argument "$IN_DIR"  || ! check_argument "$OUT_DIR" || ! check_argument "$CMD"; then
+        print_error "join_files_in_directory expects a domains list, an input directory, an output directory and a command name"
+        return 1
+    fi
+
+    DATE=$(date)
+    HASH=$(hash_value "$DOMAINS,$CMD")
+    TMP_FILE="/tmp/parse_$HASH.tmp"
+    OUT_FILE="${OUT_DIR}/${CMD}_parsed_${HASH}.txt"
+    local -a DOMAIN_ARRAY
+    comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
+
+    echo "" > $TMP_FILE
+
+    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
+        for FILE in "$IN_DIR"/*"$DOMAIN"*; do
+            if file_exists "$FILE"; then
+                cat "$FILE" >> "$OUT_FILE"
+            fi
+        done
+    done
+
+    sort_subdomain_file "$OUT_FILE" > "$TMP_FILE"
+    uniq "$TMP_FILE" > "$OUT_FILE"
+    echo "$OUT_FILE"
+}
+
+extract_domains_from_urls() {
+    local URL_FILE=$1
+    local OUTPUT_FILE=$2
+
+    if ! check_argument "$URL_FILE" || ! check_argument "$OUTPUT_FILE"; then
+        print_error "extract_domains_from_urls expects a URL list file, and an output file"
+        return 1
+    fi
+
+    if [[ ! -f "$URL_FILE" ]]; then
+        echo "URL file not found: $URL_FILE"
+        return 1
+    fi
+
+    grep -oP 'https?://\K[^/]+(?=/|$)' "$URL_FILE" | \
+    cut -d '@' -f2 | \
+    sort -u > "$OUTPUT_FILE"
+}
+
+extract_target_domains() {
+    local IN_FILE=$1
+    local -a DOMAIN_ARRAY=("${!2}")
+    local OUT_FILE=$3
+
+    if ! check_argument "$IN_FILE" || ! check_argument "$OUT_FILE"; then
+        print_error "extract_target_domains expects a URL list file, and an output file"
+        return 1
+    fi
+
+    if [[ ! -f "$FILE" ]]; then
+        echo "File not found: $FILE"
+        return 1
+    fi
+
+    echo "" > "$OUT_FILE"
+
+    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
+        grep "$DOMAIN" "$FILE" >> "$OUT_FILE"
+    done
+
+    sort -u "$OUT_FILE" -o "$OUT_FILE"
+}
 
 # ---------------- Grab External Data ----------------#
 

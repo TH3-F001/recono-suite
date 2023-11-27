@@ -9,6 +9,7 @@ declare -A APT_PACKAGES=(
     [pip3]="python3-pip"
     [go]="golang"
     [make]="build-essential"
+    [sqlite]="sqlite3"
 )
 
 declare -A YUM_PACKAGES=(
@@ -19,6 +20,7 @@ declare -A YUM_PACKAGES=(
     [make]='sudo yum groupinstall "Development Tools" -y'
     [curl]="sudo yum install curl -y"
     [wget]="sudo yum install wget -y"
+    [sqlite]="sudo yum install sqlite3 -y"
 )
 
 declare -A DNF_PACKAGES=(
@@ -29,6 +31,7 @@ declare -A DNF_PACKAGES=(
     [make]='sudo dnf groupinstall "Development Tools" -y'
     [curl]="sudo dnf install curl -y"
     [wget]="sudo dnf install wget -y"
+    [sqlite]="sudo dnf install sqlite3"
 )
 
 declare -A PACMAN_PACKAGES=(
@@ -48,6 +51,7 @@ declare -A EMERGE_PACKAGES=(
     [make]="build"
     [wget]="net-misc/wget"
     [expect]="dev-tcltk/expect"
+    [sqlite]="dev-db/sqlite"
 )
 
 

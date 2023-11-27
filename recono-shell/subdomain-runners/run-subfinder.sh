@@ -7,29 +7,39 @@ source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
 import_config_file
 
-DOMAINS=$1
-OUTPUT_DIR=$2
+DOMAINS=""
+OUTPUT_DIR=""
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -d|--domains) DOMAINS="$2"; shift ;;
+        -o|--output) OUTPUT_DIR="$2"; shift ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
 
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
-    print_error "run-subdomainizer.sh expects a comma separated list of domains, and an output directory"
+    print_error "run-subfinder.sh requires -d (domains) and -o (output directory)"
+    echo "USAGE: run-subfinder.sh -d <domains> -o <output_directory>"
     exit 1
 fi
 
-echo -e "⚡ Running SubdDomainizer against $DOMAINS..."
+echo -e "⚡ Running Subfinder against $DOMAINS..."
 
 mkdir -p "$OUTPUT_DIR"
 
 
 
 OUT_PRE=$(hash_value "$DOMAINS")
-OUT_FILE="$OUTPUT_DIR/subdomainizer_$OUT_PRE.txt"
+OUT_FILE="$OUTPUT_DIR/subfinder_$OUT_PRE.txt"
 
 CMD="subfinder -d $DOMAINS -all -o $OUT_FILE -max-time 30"
 
 if run_and_indent "$CMD" ; then 
-    print_success "SubdDomainizer has completed successfully"
+    print_success "Subfinder has completed successfully"
 else 
-    print_error "An error occurred while running SubdDomainizer"
+    print_error "An error occurred while running Subfinder"
 fi
 
 # $AUTORESPOND_SCRPT "$BBOT_CMD" "\[SUCC\] Scan ready\. Press enter to execute \w+" "\r"

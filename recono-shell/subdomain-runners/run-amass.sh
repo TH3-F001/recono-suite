@@ -24,6 +24,7 @@ done
 
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
     print_error "run-amass.sh expects a comma separated list of domains, and an output directory"
+    echo "USAGE: run-amass.sh -d <domains> -o <output_directory> [-active]"
     exit 1
 fi
 

@@ -6,7 +6,7 @@ LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/install.lib"
 
-declare -a REQUIRED_DEPENDENCIES=("pip3" "pipx" "go" "git" "make" "curl" "wget" "expect")
+declare -a REQUIRED_DEPENDENCIES=("pip3" "pipx" "go" "git" "make" "curl" "wget" "expect" "sqlite")
 declare -a ABSENT_DEPENDENCIES
 
 check_and_add_dependency() {
@@ -52,9 +52,9 @@ done
 if [ ${#ABSENT_DEPENDENCIES[@]} -ne 0 ]; then
     if command_exists apt &> /dev/null; then
         install_with_apt "${ABSENT_DEPENDENCIES[@]}"
-    elif command_exists yum &> /dev/null; then
-        install_with_yum "${ABSENT_DEPENDENCIES[@]}"
     elif command_exists dnf &> /dev/null; then
+        install_with_yum "${ABSENT_DEPENDENCIES[@]}"
+    elif command_exists yum &> /dev/null; then
         install_with_dnf "${ABSENT_DEPENDENCIES[@]}"
     elif command_exists pacman &> /dev/null; then
         install_with_pacman "${ABSENT_DEPENDENCIES[@]}"

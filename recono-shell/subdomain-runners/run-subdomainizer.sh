@@ -7,11 +7,21 @@ source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
 import_config_file
 
-DOMAINS=$1
-OUTPUT_DIR=$2
+DOMAINS=""
+OUTPUT_DIR=""
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -d|--domains) DOMAINS="$2"; shift ;;
+        -o|--output) OUTPUT_DIR="$2"; shift ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
 
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
-    print_error "run-subdomainizer.sh expects a comma separated list of domains, and an output directory"
+    print_error "run-subdomainizer.sh requires -d (domains) and -o (output directory)"
+    echo "USAGE: run-subdomainizer.sh -d <domains> -o <output_directory>"
     exit 1
 fi
 
@@ -29,7 +39,7 @@ URL_FILE=$(generate_url_list_from_domains "$DOMAINS")
 
 
 CMD="subdomainizer -cop $CLOUD_FILE -d $DOMAINS -g -gt $GITHUB_API_KEY -o $OUT_FILE -san all -l $URL_FILE"
-
+echo $CMD
 if run_and_indent "$CMD" ; then 
     print_success "SubdDomainizer has completed successfully"
 else 
