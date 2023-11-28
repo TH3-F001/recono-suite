@@ -29,14 +29,10 @@ echo -e "⚡ Running SubdDomainizer against $DOMAINS..."
 
 mkdir -p "$OUTPUT_DIR"
 
-
-
-OUT_PRE=$(hash_value "$DOMAINS")
+OUT_PRE=$(hash_value "$DOMAINS,subdomainizer")
 OUT_FILE="$OUTPUT_DIR/subdomainizer_$OUT_PRE.txt"
 CLOUD_FILE="$OUTPUT_DIR/subdomainizer_cloud_$OUT_PRE.txt"
 URL_FILE=$(generate_url_list_from_domains "$DOMAINS")
-
-
 
 CMD="subdomainizer -cop $CLOUD_FILE -d $DOMAINS -g -gt $GITHUB_API_KEY -o $OUT_FILE -san all -l $URL_FILE"
 echo $CMD

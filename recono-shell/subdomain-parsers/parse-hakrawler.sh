@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-trap 'print_error "An error occured while parsing Assetfinder. Exiting..." >&2; exit 1' ERR
+# set -e
+# trap 'print_error "An error occured while parsing Assetfinder. Exiting..." >&2; exit 1' ERR
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
@@ -35,25 +35,29 @@ declare -a DOMAIN_ARRAY
 comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
 HASH=$(hash_value "$DOMAINS,hakrawler")
 
-mkdir -p "/tmp/$HASH"
+TMP_DIR="/tmp/$HASH"
+RESULT_DIR="/tmp/hakrawler_result_$HASH"
+rm -rf "$TMP_DIR" "$RESULT_DIR"
+mkdir -p "$TMP_DIR"
+mkdir -p "$RESULT_DIR"
+
 for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
     for FILE in "$INPUT_DIR"/*"$DOMAIN"*; do
+    
         if file_exists "$FILE"; then
-            BASE=$(basename "$FILE")
-            TMP_FILE="/tmp/$HASH/$BASE"
+            BASE_NAME=$(basename "$FILE")
+            TMP_FILE="$TMP_DIR/$BASE_NAME"
+            RESULT_FILE="$RESULT_DIR/$BASE_NAME"
+
             extract_domains_from_urls "$FILE" "$TMP_FILE"
-            echo "$TMP_FILE"
-            extract_target_domains "$TMP_FILE" DOMAIN_ARRAY "$TMP_FILE.extracted"
-            cat "$TMP_FILE.extracted" > "$TMP_FILE"
+            extract_target_domains "$TMP_FILE" "$DOMAINS" "$RESULT_FILE"
         else
-            echo "WTF?"
+            echo "$DOMAIN not found in $INPUT_DIR"
         fi
     done
 done
-echo TEST
 
-OUT_FILE=$(join_subdomain_files "$DOMAINS" "/tmp/$HASH" "/tmp" "hakrawler")
-echo "/tmp/$HASH"
+OUT_FILE=$(join_subdomain_files "$DOMAINS" "$RESULT_DIR" "$OUTPUT_DIR" "hakrawler")
 
 if file_exists "$OUT_FILE"; then
     print_success "Hakrawler results successfuly extracted to $OUT_FILE"

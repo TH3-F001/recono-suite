@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-trap 'print_error "An error occured while parsing Github-Subdomains. Exiting..." >&2; exit 1' ERR
+
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"

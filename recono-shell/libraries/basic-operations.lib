@@ -347,20 +347,20 @@ join_subdomain_files() {
     local IN_DIR=$2
     local OUT_DIR=$3 
     local CMD=$4
+    local HASH
 
     if ! check_argument "$DOMAINS" || ! check_argument "$IN_DIR"  || ! check_argument "$OUT_DIR" || ! check_argument "$CMD"; then
         print_error "join_files_in_directory expects a domains list, an input directory, an output directory and a command name"
         return 1
     fi
 
-    DATE=$(date)
     HASH=$(hash_value "$DOMAINS,$CMD")
-    TMP_FILE="/tmp/parse_$HASH.tmp"
-    OUT_FILE="${OUT_DIR}/${CMD}_parsed_${HASH}.txt"
+    local TMP_FILE="/tmp/parse_$HASH.tmp"
+    local OUT_FILE="${OUT_DIR}/${CMD}_parsed_${HASH}.txt"
+    echo "" > "$OUT_FILE"
+    echo "" > "$TMP_FILE"
     local -a DOMAIN_ARRAY
     comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
-
-    echo "" > $TMP_FILE
 
     for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
         for FILE in "$IN_DIR"/*"$DOMAIN"*; do
@@ -396,27 +396,32 @@ extract_domains_from_urls() {
 
 extract_target_domains() {
     local IN_FILE=$1
-    local -a DOMAIN_ARRAY=("${!2}")
+    local DOMAINS=$2
     local OUT_FILE=$3
 
-    if ! check_argument "$IN_FILE" || ! check_argument "$OUT_FILE"; then
+    if ! check_argument "$IN_FILE" || ! check_argument "$OUT_FILE" || ! check_argument "$DOMAINS"; then
         print_error "extract_target_domains expects a URL list file, and an output file"
         return 1
     fi
 
-    if [[ ! -f "$FILE" ]]; then
-        echo "File not found: $FILE"
+    if [[ ! -f "$IN_FILE" ]]; then
+        echo "File not found: $IN_FILE"
         return 1
     fi
 
-    echo "" > "$OUT_FILE"
+    local -a DOMAIN_ARR
+    comma_list_to_array "$DOMAINS" DOMAIN_ARR
+    echo "" > "$OUT_FILE"  # Clear the output file or create it if it doesn't exist
 
-    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
-        grep "$DOMAIN" "$FILE" >> "$OUT_FILE"
+    for DOMAIN in "${DOMAIN_ARR[@]}"; do
+        grep "$DOMAIN" "$IN_FILE" >> "$OUT_FILE"
     done
+    # cat $OUT_FILE
 
     sort -u "$OUT_FILE" -o "$OUT_FILE"
 }
+
+
 
 # ---------------- Grab External Data ----------------#
 

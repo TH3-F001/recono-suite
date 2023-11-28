@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 
@@ -22,17 +21,17 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if ! check_argument "$INPUT_DIR" || ! check_argument "$OUTPUT_DIR" || ! check_argument "$DOMAINS"; then
-    print_error "parse-assetfinder.sh expects an input file, a comma separated domains list, and an output directory"
-    echo "USAGE: parse-assetfinder.sh -i <input_file> -d <comma_separated_domains> -o <output_directory>"
+    print_error "parse-shosubgo.sh expects an input file, a comma separated domains list, and an output directory"
+    echo "USAGE: parse-shosubgo.sh -i <input_file> -d <comma_separated_domains> -o <output_directory>"
     exit 1
 fi
 
-echo "🔍 Extracting Assetfinder Domains: $DOMAINS From: $INPUT_DIR"
+echo "🔍 Extracting Shosubgo Domains: $DOMAINS From: $INPUT_DIR"
 
-OUT_FILE=$(join_subdomain_files "$DOMAINS" "$INPUT_DIR" "$OUTPUT_DIR" "assetfinder")
+OUT_FILE=$(join_subdomain_files "$DOMAINS" "$INPUT_DIR" "$OUTPUT_DIR" "shosubgo")
 
 if file_exists "$OUT_FILE"; then
-    print_success "Assetfinder results successfuly extracted to $OUT_FILE"
+    print_success "Shosubgo results successfuly extracted to $OUT_FILE"
 else
-    print_error "An error occurred while parsing Assetfinder"
+    print_error "An error occurred while parsing Shosubgo"
 fi
