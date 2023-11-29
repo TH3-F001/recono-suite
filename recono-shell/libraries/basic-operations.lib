@@ -391,6 +391,7 @@ extract_domains_from_urls() {
 
     grep -oP 'https?://\K[^/]+(?=/|$)' "$URL_FILE" | \
     cut -d '@' -f2 | \
+    sed 's/:.*//' | \
     sort -u > "$OUTPUT_FILE"
 }
 

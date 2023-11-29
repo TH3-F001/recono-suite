@@ -31,8 +31,8 @@ mkdir -p "$OUTPUT_DIR"
 
 
 
-OUT_PRE=$(hash_value "$DOMAINS")
-OUT_FILE="$OUTPUT_DIR/subfinder_$OUT_PRE.txt"
+HASH=$(hash_value "$DOMAINS,subfinder")
+OUT_FILE="$OUTPUT_DIR/subfinder_$HASH.txt"
 
 CMD="subfinder -d $DOMAINS -all -o $OUT_FILE -max-time 30"
 
