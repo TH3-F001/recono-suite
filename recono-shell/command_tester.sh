@@ -22,7 +22,7 @@ ASSETFINDER_SCRIPT="$RUNNER_DIR/run-assetfinder.sh"
 mkdir -p "$ASSETFINDER_OUT_DIR"
 $ASSETFINDER_SCRIPT -d "$DOMAINS" -o "$ASSETFINDER_OUT_DIR"
 
-# bbot
+# Bbot
 BBOT_OUT_DIR="$OUTPUT_ROOT/bbot"
 BBOT_SCRIPT="$RUNNER_DIR/run-bbot.sh"
 mkdir -p "$BBOT_OUT_DIR"
