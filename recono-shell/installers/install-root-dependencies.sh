@@ -6,7 +6,7 @@ LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/install.lib"
 
-declare -a REQUIRED_DEPENDENCIES=("pip3" "pipx" "go" "git" "make" "curl" "wget" "expect" "sqlite")
+declare -a REQUIRED_DEPENDENCIES=("pip3" "pipx" "go" "git" "make" "curl" "wget" "expect" "sqlite" "jq" )
 declare -a ABSENT_DEPENDENCIES
 
 check_and_add_dependency() {

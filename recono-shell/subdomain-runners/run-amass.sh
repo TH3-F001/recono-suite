@@ -49,7 +49,7 @@ fi
 
 AMASS_COMMAND+=" -rf $UTRF -rqps $URQPS -trf $TRF -trqps $TRQPS"
 
-if run_and_indent "$AMASS_COMMAND" ; then
+if run_and_indent "$AMASS_COMMAND"; then
     print_success "Amass has completed successfully"
 else
     print_error "An error occurred while running Amass"

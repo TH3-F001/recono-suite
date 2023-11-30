@@ -20,12 +20,12 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
-    print_error "run-shuffledns.sh requires -d (domains) and -o (output directory)"
-    echo "USAGE: run-shuffledns.sh -d <domains> -o <output_directory>"
+    print_error "run-crt.sh requires -d (domains) and -o (output directory)"
+    echo "USAGE: run-crt.sh -d <domains> -o <output_directory>"
     exit 1
 fi
 
-echo -e "⚡ Running ShuffleDns against $DOMAINS..."
+echo -e "⚡ Running Crt.sh against $DOMAINS..."
 mkdir -p "$OUTPUT_DIR" || { echo "Failed to create directory: $OUTPUT_DIR"; exit 1; }
 
 declare -a DOMAIN_LIST
@@ -34,14 +34,14 @@ CMDS=()
 
 for DOMAIN in "${DOMAIN_LIST[@]}"; do
     echo -e "\tRunning against $DOMAIN..."
-    OUT_FILE="$OUTPUT_DIR/shuffledns_$DOMAIN.txt"
-    CMD="shuffledns -d $DOMAIN -w $SUBDOMAIN_MASTER_LIST -r $TRUSTED_RESOLVER_FILE -t 1500 -o $OUT_FILE"
+    OUT_FILE="$OUTPUT_DIR/crt.sh_$DOMAIN.txt"
+    CMD="curl -s 'https://crt.sh/?q=$DOMAIN&output=json' | jq -r '.[].name_value' | sort -u > $OUT_FILE"
     CMDS+=("$CMD")
 done
 
 if run_async_commands "${CMDS[@]}"; then
-    print_success "ShuffleDns completed successfully"
+    print_success "Crt.sh completed successfully"
 else 
-    print_error "An error occurred while running ShuffleDns"
+    print_error "An error occurred while running Crt.sh"
     exit 1
 fi

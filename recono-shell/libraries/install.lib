@@ -21,6 +21,7 @@ declare -A YUM_PACKAGES=(
     [curl]="sudo yum install curl -y"
     [wget]="sudo yum install wget -y"
     [sqlite]="sudo yum install sqlite3 -y"
+    [jq]="sudo yum install jq -y"
 )
 
 declare -A DNF_PACKAGES=(
@@ -32,6 +33,7 @@ declare -A DNF_PACKAGES=(
     [curl]="sudo dnf install curl -y"
     [wget]="sudo dnf install wget -y"
     [sqlite]="sudo dnf install sqlite3"
+    [jq]="sudo dnf install jq -y"
 )
 
 declare -A PACMAN_PACKAGES=(
@@ -52,6 +54,7 @@ declare -A EMERGE_PACKAGES=(
     [wget]="net-misc/wget"
     [expect]="dev-tcltk/expect"
     [sqlite]="dev-db/sqlite"
+    [jq]="app-misc/jq"
 )
 
 

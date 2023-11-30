@@ -148,13 +148,12 @@ run_async_commands() {
 }
 
 display_loading_animation() {
-    local APP=$1
-    local PID=$!
+    local PID=$1
     local delay=0.15
     local emojis=('🌑' '🌒' '🌓' '🌔' '🌕' '🌖' '🌗' '🌘')
     local i=0
 
-    while [ "$(ps a | awk '{print $1}' | grep $PID)" ]; do
+    while [ "$(ps -p $PID -o pid=)" ]; do
         printf "\t%s  " "${emojis[i]}"
         sleep $delay
         printf "\b\b\b\b\b"
@@ -162,6 +161,7 @@ display_loading_animation() {
     done
     printf "    \b\b\b\b"
 }
+
 
 display_hacky_animation() {
     local PID=$!
@@ -339,8 +339,10 @@ sort_subdomain_file() {
     sort | \
     awk -F '.' '{for (i=NF; i>0; i--) printf "%s.", $i; print ""}' | \
     rev | cut -c 2- | rev | \
-    sed '/^./s///'
+    sed '/^./s///' | \
+    sed 's/\*\.//g'
 }
+
 
 join_subdomain_files() {
     local DOMAINS=$1
