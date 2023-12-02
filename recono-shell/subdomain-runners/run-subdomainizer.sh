@@ -35,7 +35,6 @@ CLOUD_FILE="$OUTPUT_DIR/subdomainizer_cloud_$OUT_PRE.txt"
 URL_FILE=$(generate_url_list_from_domains "$DOMAINS")
 
 CMD="subdomainizer -cop $CLOUD_FILE -d $DOMAINS -g -gt $GITHUB_API_KEY -o $OUT_FILE -san all -l $URL_FILE"
-echo $CMD
 if run_and_indent "$CMD" ; then 
     print_success "SubdDomainizer has completed successfully"
 else 

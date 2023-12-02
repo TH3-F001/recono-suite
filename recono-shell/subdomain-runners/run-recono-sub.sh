@@ -15,7 +15,7 @@ active_mode_=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -active) active_mode_=true ;;
-        -d|--domain-file) DOMAINS_="$2"; shift ;;
+        -d|--domains) DOMAINS_="$2"; shift ;;
         -o|--output) OUTPUT_DIR_="$2"; shift ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
@@ -23,8 +23,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if ! check_argument "$DOMAINS_" || ! check_argument "$OUTPUT_DIR_"; then
-    print_error "run-amass.sh expects a comma separated list of domains, and an output directory"
-    echo "USAGE: run-amass.sh -d <domains> -o <output_directory> [-active]"
+    print_error "run-recono-sub.sh expects a comma separated list of domains, and an output directory"
+    echo "USAGE: run-recono-sub.sh -d <domains> -o <output_directory> [-active]"
     exit 1
 fi
 

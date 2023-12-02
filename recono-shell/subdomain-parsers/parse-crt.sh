@@ -29,8 +29,8 @@ fi
 
 echo "🔍 Extracting Crt.sh Domains: $DOMAINS From: $INPUT_DIR"
 
-HASH=$(hash_value "$DOMAINS,crt")
-OUT_FILE="$OUTPUT_DIR/crt_parsed_$HASH.txt"
+HASH=$(hash_value "$DOMAINS,crt.sh")
+OUT_FILE="$OUTPUT_DIR/crt.sh_parsed_$HASH.txt"
 declare -a DOMAIN_ARRAY
 comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
 echo "" > "$OUT_FILE"

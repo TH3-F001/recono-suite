@@ -25,28 +25,32 @@ done
 if ! check_argument "$DOMAINS" || ! check_argument "$OUTPUT_DIR"; then
     print_error "run-bbot.sh expects a comma separated list of domains, and an output directory"
     echo "USAGE: run-bbot.sh -d <domains> -o <output_directory> [-active]"
-
     exit 1
 fi
 
 echo -e "⚡ Running Bbot against $DOMAINS..."
-
 mkdir -p "$OUTPUT_DIR"
 
 BBOT=$(which bbot)
-BBOT_CMD="$BBOT -t $DOMAINS -f subdomain-enum --force --yes --silent --ignore-failed-deps -o $OUTPUT_DIR -rf 1> /dev/null"
+BBOT_CMD="$BBOT -t $DOMAINS -f subdomain-enum --force --yes --silent --force --ignore-failed-deps -o $OUTPUT_DIR -rf"
 
-if [ "$active_mode" = true ]; then
-    BBOT_CMD+=" active"
-else
-    BBOT_CMD+=" passive"
-fi
+[ "$active_mode" = true ] && BBOT_CMD+=" active" || BBOT_CMD+=" passive"
 
-if run_and_indent "$BBOT_CMD" ; then 
+# Expect script
+expect -c "
+    spawn bash -c \"$BBOT_CMD\"
+    set timeout -1
+    expect {
+        -re {.*: No events in queue} {
+            send \"\r\"
+            exp_continue
+        }
+        eof
+    }
+" > /dev/null
+
+if [ $? -eq 0 ]; then 
     print_success "Bbot has completed successfully"
 else 
     print_error "An error occurred while running Bbot"
 fi
-
-# $AUTORESPOND_SCRPT "$BBOT_CMD" "\[SUCC\] Scan ready\. Press enter to execute \w+" "\r"
-
