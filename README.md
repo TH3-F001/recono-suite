@@ -4,14 +4,18 @@
 Just a humble, dead simple collection of scripts for assisting in the information gathering stages of pentesting
 
 ## Install:
+```
 git clone https://github.com/TH3-F001/recono-suite.git
 cd recono-suite
 chmod +x install.sh
 ./install.sh
+```
 
 ## Uninstall:
+```
 cd $HOME/.config/recono-suite
 ./uninstall.sh
+```
 
 ## Requirements:
 
