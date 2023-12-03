@@ -33,7 +33,6 @@ mkdir -p "$OUTPUT_DIR"
 
 BBOT=$(which bbot)
 BBOT_CMD="$BBOT -t $DOMAINS -f subdomain-enum --force --yes --silent --force --ignore-failed-deps -o $OUTPUT_DIR -rf"
-
 [ "$active_mode" = true ] && BBOT_CMD+=" active" || BBOT_CMD+=" passive"
 
 # Expect script
