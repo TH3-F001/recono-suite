@@ -40,11 +40,11 @@ else
     "$SCRIPT_DIR/run-amass.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/amass" &
 fi
 
-# if [ "$active_mode_" = true ]; then
-#     "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" -active &
-# else
-#     "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" &
-# fi
+if [ "$active_mode_" = true ]; then
+    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" -active &
+else
+    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" &
+fi
 
 PID=$!
 sleep 1

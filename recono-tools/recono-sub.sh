@@ -56,7 +56,7 @@ process_chunk() {
     fi
 }
 
-Read domains from file and chunk them
+# Read domains from file and chunk them
 IFS=$'\n' read -d '' -r -a _DOMAINS_ < "$_DOMAIN_FILE_"
 for ((i=0; i<${#_DOMAINS_[@]}; i+=_CHUNK_SIZE_)); do
     _CHUNK_=$(IFS=,; echo "${_DOMAINS_[*]:i:_CHUNK_SIZE_}")
