@@ -11,11 +11,10 @@ chmod +x install.sh
 ./install.sh
 '''
 
-## Uninstall:
-```
+## Uninstall:'''
 cd $HOME/.config/recono-suite
 ./uninstall.sh
-```
+'''
 
 ## Requirements:
 
