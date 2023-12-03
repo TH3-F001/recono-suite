@@ -8,7 +8,7 @@ CONFIG_FILE="$CONFIG_DIR/config.txt"
 SRC_WORDLIST_DIR="$SCRIPT_DIR/wordlists"
 DST_WORDLIST_DIR="$CONFIG_DIR/wordlists"
 LOG_DIR="$CONFIG_DIR/logs"
-
+LOCAL_BIN_DIR="$HOME"/.local/bin
 
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
@@ -16,42 +16,48 @@ source "$LIB_SCRIPT_DIR/install.lib"
 
 echo "📦 Beginning recono-shell installation..."
 # Create Config Directory
-mkdir -p "$DST_WORDLIST_DIR"
-mkdir -p $LOG_DIR
+
+
 
 # Add directories to $PATH
-declare -a ADDITIONAL_PATHS=("$HOME/go/bin" "/usr/local/go/bin" "/usr/local/bin/")
+mkdir -p "$LOCAL_BIN_DIR"
+declare -a ADDITIONAL_PATHS=("$HOME/go/bin" "/usr/local/go/bin" "/usr/local/bin/" "$LOCAL_BIN_DIR")
 add_directories_to_path "${ADDITIONAL_PATHS[@]}"
-
-# Set all bash script permissions in the project to 755
-set_shell_script_permissions "$SCRIPT_DIR"
 
 # Install installation dependencies and needed tools
 check_and_run_script "$INSTALLERS_DIR/install-all-dependencies.sh"
 
-# Prompt for API keys
-SHODAN_API_KEY=$(prompt_for_api_key "Shodan")
-GITHUB_API_KEY=$(prompt_for_api_key "Github")
-C99_API_KEY=$(prompt_for_api_key "C99")
+# Move Worldist files to .config
+echo "Copying files to $CONFIG_DIR..."
+cp -v -r "$SCRIPT_DIR" "$HOME/.config"
+find "$CONFIG_DIR" -type f -name "*.sh" -exec chmod 755 {} \;
+
+echo "Linking Recono-Tools..."
+for SCRIPT in "$CONFIG_DIR/recono-tools"/*.sh; do
+    if [ -f "$SCRIPT" ]; then
+        FILENAME=$(basename -- "$SCRIPT")
+        LINKNAME="${FILENAME%.sh}"  # Remove the .sh extension
+
+        # Create a symbolic link in LOCAL_BIN_DIR
+        echo -e "\t Linking $SCRIPT to $LOCAL_BIN_DIR/$LINKNAME"
+        ln -s "$SCRIPT" "$LOCAL_BIN_DIR/$LINKNAME"
+    fi
+done
 
 # Assign Wordlist Files
+mkdir -p "$DST_WORDLIST_DIR"
 TRUSTED_RESOLVER_FILE="$DST_WORDLIST_DIR/trusted-resolvers.txt"
 UNTRUSTED_RESOLVER_FILE="$DST_WORDLIST_DIR/untrusted-resolvers.txt"
 SUBDOMAIN_MASTER_LIST="$DST_WORDLIST_DIR/subdomain-master.txt"
 
 # Generate resolver lists
-get_trusted_dns_resolver_list "$SRC_WORDLIST_DIR/trusted-resolvers.txt"
-get_untrusted_dns_resolver_list "$SRC_WORDLIST_DIR/untrusted-resolvers.txt"
+get_trusted_dns_resolver_list "$TRUSTED_RESOLVER_FILE"
+get_untrusted_dns_resolver_list "$UNTRUSTED_RESOLVER_FILE"
 
-
-
-# Move Worldist files to .config
-echo "Copying List files to $DST_WORDLIST_DIR..."
-for ITEM in "$SRC_WORDLIST_DIR"/*; do
-    if file_exists "$ITEM"; then
-        cp -v "$ITEM" "$DST_WORDLIST_DIR"
-    fi
-done
+# Prompt for API keys
+SHODAN_API_KEY=$(prompt_for_api_key "Shodan")
+GITHUB_API_KEY=$(prompt_for_api_key "Github")
+C99_API_KEY=$(prompt_for_api_key "C99")
 
 # Load config variables (api keys and paths) into the config file
 {
@@ -65,5 +71,7 @@ done
 } > "$CONFIG_FILE"
 
 chmod 600  "$CONFIG_FILE"
+mkdir -p "$LOG_DIR"
 
-# TODO copy all files in this directory and below, into .config
+
+

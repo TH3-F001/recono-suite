@@ -31,10 +31,10 @@ fi
 
 echo "🔍 Extracting Recono-Sub Results On: $DOMAINS_ From: $INPUT_DIR_"
 mkdir -p "$OUTPUT_DIR_" || { echo "Failed to create directory: $OUTPUT_DIR_"; exit 1; }
-
+mkdir -p "$OUTPUT_DIR_/final_results" || { echo "Failed to create directory: $OUTPUT_DIR_/final_results"; exit 1; }
 HASH=$(hash_value "$DOMAINS_,recono-sub")
 
-"$SCRIPT_DIR/parse-amass.sh" -d "$DOMAINS_" -i "$INPUT_DIR_/amass" -o "$OUTPUT_DIR_/final_results"
+"$SCRIPT_DIR/parse-amass.sh" -d "$DOMAINS_" -i "$INPUT_DIR_/amass/amass.sqlite" -o "$OUTPUT_DIR_/final_results"
 
 "$SCRIPT_DIR/parse-c99.sh" -d "$DOMAINS_" -i "$INPUT_DIR_/c99" -o "$OUTPUT_DIR_/final_results"
 
@@ -59,14 +59,10 @@ HASH=$(hash_value "$DOMAINS_,recono-sub")
 "$SCRIPT_DIR/parse-shuffledns.sh" -d "$DOMAINS_" -i "$INPUT_DIR_/shuffledns" -o "$OUTPUT_DIR_/final_results"
 
 OUT_FILE=$(join_subdomain_files "$DOMAINS_" "$OUTPUT_DIR_/final_results" "$OUTPUT_DIR_" "recono-sub")
-
+sort_subdomain_file "$OUT_FILE"
 if file_exists "$OUT_FILE"; then
-    RESULT_FILE="$OUTPUT_DIR_/recon-sub_RESULT_$HASH.txt"
-    cp "$OUT_FILE" "$RESULT_FILE"
-
-    print_success "Recono-Sub results successfuly extracted to $RESULT_FILE"
+    print_success "Recono-Sub results successfuly extracted to $OUT_FILE"
+    # cat "$OUT_FILE"
 else
     print_error "An error occurred while parsing Recono-Sub"
 fi
-
-echo "$RESULT_FILE"

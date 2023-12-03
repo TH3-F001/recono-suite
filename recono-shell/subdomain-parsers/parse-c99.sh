@@ -31,6 +31,7 @@ echo "🔍 Extracting C99 Domains: $DOMAINS From: $INPUT_DIR"
 
 HASH=$(hash_value "$DOMAINS,c99")
 OUT_FILE="$OUTPUT_DIR/c99_parsed_$HASH.txt"
+touch $OUT_FILE
 declare -a DOMAIN_ARRAY
 comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
 echo "" > "$OUT_FILE"

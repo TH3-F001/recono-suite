@@ -6,6 +6,7 @@ LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
 import_config_file
+trap cleanup SIGINT
 
 DOMAINS_=""
 OUTPUT_DIR_=""
@@ -39,6 +40,12 @@ else
     "$SCRIPT_DIR/run-amass.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/amass" &
 fi
 
+if [ "$active_mode_" = true ]; then
+    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" -active &
+else
+    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" &
+fi
+
 PID=$!
 sleep 1
 "$SCRIPT_DIR/run-c99.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/c99" &
@@ -56,13 +63,11 @@ sleep 1
 "$SCRIPT_DIR/run-shosubgo.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/shosubgo"&
 sleep 1
 "$SCRIPT_DIR/run-subdomainizer.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/subdomainizer"&
-wait $PID
-"$SCRIPT_DIR/run-subfinder.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/subfinder"
 
-if [ "$active_mode_" = true ]; then
-    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot" -active
-else
-    "$SCRIPT_DIR/run-bbot.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/bbot"
-fi
+"$SCRIPT_DIR/run-subfinder.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/subfinder" &
+wait $PID
 
 "$SCRIPT_DIR/run-shuffledns.sh" -d "$DOMAINS_" -o "$OUTPUT_DIR_/shuffledns"
+
+wait
+print_success "Subdomain Enumeration Tools Have Finished Running"

@@ -44,11 +44,7 @@ for FILE in "$INPUT_DIR"/*; do
     fi
 done
 
-
-echo "DOMAINS: $DOMAINS"
-echo "OUTPUT_DIR: $OUTPUT_DIR"
 OUT_FILE=$(join_subdomain_files "$HASH" "$REG_DIR" "$OUTPUT_DIR" "subdomainizer")
-cat "$OUT_FILE"
 
 for FILE in "$CLOUD_DIR"/*; do
     if file_exists $FILE; then

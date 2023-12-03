@@ -186,29 +186,14 @@ display_hacky_animation() {
     done
 }
 
-generate_url_list_from_domains() {
-    local DOMAINS="$1"
 
-    if ! check_argument "$DOMAINS"; then
-        print_error "generate_url_list_from_domains expects a command as an argument"
-        return 1
-    fi
 
-    local SALT=$(tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 6)
-    local OUT_PRE=$(hash_value "$DOMAINS")
-    local URL_FILE="/tmp/url_$OUT_PRE$SALT"
-
-    OLD_IFS="$IFS"
-    IFS=','
-    read -ra DOMAIN_ARRAY <<< "$DOMAINS"
-    IFS="$OLD_IFS"
-
-    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
-        echo "http://$DOMAIN" >> "$URL_FILE"
-    done
-
-    echo "$URL_FILE"
+cleanup() {
+    echo "Caught Interrupt. Cleaning up..."
+    pkill -P $$
+    exit 1
 }
+
 
 # ---------------- Print Functions  ---------------- #
 print_error() {
@@ -343,6 +328,29 @@ sort_subdomain_file() {
     sed 's/\*\.//g'
 }
 
+generate_url_list_from_domains() {
+    local DOMAINS="$1"
+
+    if ! check_argument "$DOMAINS"; then
+        print_error "generate_url_list_from_domains expects a command as an argument"
+        return 1
+    fi
+
+    local SALT=$(tr -dc 'a-zA-Z0-9' </dev/urandom | head -c 6)
+    local OUT_PRE=$(hash_value "$DOMAINS")
+    local URL_FILE="/tmp/url_$OUT_PRE$SALT"
+
+    OLD_IFS="$IFS"
+    IFS=','
+    read -ra DOMAIN_ARRAY <<< "$DOMAINS"
+    IFS="$OLD_IFS"
+
+    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
+        echo "http://$DOMAIN" >> "$URL_FILE"
+    done
+
+    echo "$URL_FILE"
+}
 
 join_subdomain_files() {
     local DOMAINS=$1
@@ -352,24 +360,26 @@ join_subdomain_files() {
     local HASH
 
     if ! check_argument "$DOMAINS" || ! check_argument "$IN_DIR"  || ! check_argument "$OUT_DIR" || ! check_argument "$CMD"; then
-        print_error "join_files_in_directory expects a domains list, an input directory, an output directory and a command name"
+        print_error "join_files_in_directory expects a domains list, an input directory, an output directory, and a command name"
         return 1
     fi
 
     HASH=$(hash_value "$DOMAINS,$CMD")
     local TMP_FILE="/tmp/parse_$HASH.tmp"
     local OUT_FILE="${OUT_DIR}/${CMD}_parsed_${HASH}.txt"
-    echo "" > "$OUT_FILE"
-    echo "" > "$TMP_FILE"
+    : > "$OUT_FILE"  
     local -a DOMAIN_ARRAY
     comma_list_to_array "$DOMAINS" DOMAIN_ARRAY
 
-    for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
-        for FILE in "$IN_DIR"/*"$DOMAIN"*; do
-            if file_exists "$FILE"; then
-                cat "$FILE" >> "$OUT_FILE"
-            fi
-        done
+    for FILE in "$IN_DIR"/*; do
+        if file_exists "$FILE"; then
+            for DOMAIN in "${DOMAIN_ARRAY[@]}"; do
+                if grep -q "$DOMAIN" "$FILE"; then
+                    cat "$FILE" >> "$OUT_FILE"
+                    break 
+                fi
+            done
+        fi
     done
 
     sort_subdomain_file "$OUT_FILE" > "$TMP_FILE"

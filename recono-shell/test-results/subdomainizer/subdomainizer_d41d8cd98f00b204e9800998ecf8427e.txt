@@ -1,6 +1,0 @@
-lacity.gov
-clerk.lacity.gov
-disclaimer.lacity.gov
-emergency.lacity.gov
-mayor.lacity.gov
-lacity.org

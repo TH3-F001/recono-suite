@@ -114,6 +114,7 @@ add_directories_to_path() {
   if [ -n "$PATH_ADDITION" ]; then
       export PATH="$PATH_ADDITION$PATH"
       EXPORT_LINE="export PATH=\"$PATH_ADDITION\$PATH\""
+      export PATH="$PATH_ADDITION$PATH"
       if ! grep -qF "$PATH_ADDITION" "$PROFILE_FILE"; then
           echo -e "#!/bin/bash\n $EXPORT_LINE" | sudo tee "$PROFILE_FILE"
       fi

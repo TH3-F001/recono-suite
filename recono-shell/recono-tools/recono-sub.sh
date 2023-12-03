@@ -1,12 +1,22 @@
 #!/bin/bash
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+LINK_PATH=$(readlink -f "$0")
+if [ "$LINK_PATH" != "$0" ]; then
+    # If being run as a symbolic link, make SCRIPT_DIR the directory of the referenced file
+    SCRIPT_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )" &> /dev/null && pwd )"
+
+else
+    # If being  run directly then get that directory
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+fi
+
 LIB_SCRIPT_DIR="$SCRIPT_DIR/../libraries"
 RUNNER_DIR="$SCRIPT_DIR/../subdomain-runners"
 PARSER_DIR="$SCRIPT_DIR/../subdomain-parsers"
 source "$LIB_SCRIPT_DIR/basic-operations.lib"
 source "$LIB_SCRIPT_DIR/recono-shell.lib"
 import_config_file
+
 
 _DOMAIN_FILE_=""
 _OUT_DIR_=""
@@ -46,13 +56,14 @@ process_chunk() {
     fi
 }
 
-# Read domains from file and chunk them
-# IFS=$'\n' read -d '' -r -a _DOMAINS_ < "$_DOMAIN_FILE_"
-# for ((i=0; i<${#_DOMAINS_[@]}; i+=_CHUNK_SIZE_)); do
-#     _CHUNK_=$(IFS=,; echo "${_DOMAINS_[*]:i:_CHUNK_SIZE_}")
-#     process_chunk "$_CHUNK_" "$_OUT_DIR_" "$_ACTIVE_MODE_"
-# done
+Read domains from file and chunk them
+IFS=$'\n' read -d '' -r -a _DOMAINS_ < "$_DOMAIN_FILE_"
+for ((i=0; i<${#_DOMAINS_[@]}; i+=_CHUNK_SIZE_)); do
+    _CHUNK_=$(IFS=,; echo "${_DOMAINS_[*]:i:_CHUNK_SIZE_}")
+    process_chunk "$_CHUNK_" "$_OUT_DIR_" "$_ACTIVE_MODE_"
+done
+
+wait
 
 _DOMAINS_=$(file_to_comma_list "$_DOMAIN_FILE_") 
-_OUT_FILE_=$("$PARSER_DIR/parse-recono-sub.sh" -d "$_DOMAINS_" -i "$_OUT_DIR_" -o "$_OUT_DIR_" )
-cat "$_OUT_FILE_"
+"$PARSER_DIR/parse-recono-sub.sh" -d "$_DOMAINS_" -i "$_OUT_DIR_" -o "$_OUT_DIR_"
