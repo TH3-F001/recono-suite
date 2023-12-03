@@ -1,14 +1,31 @@
 # recono-suite
 
 ## Description
-Just a shitty little collection of scripts for enumerating seed domains, subdomains, and directories for bug bounty
-All they do for the most part is multi-processed, and multi-threaded execution of common recon shell commands, send the output to a
-common directory, and then parses the results to a master file, which is then iterated over again until no new results are
-found
+Just a humble, dead simple collection of scripts for assisting in the information gathering stages of pentesting
 
-### Tools Used:
+## Install:
+git clone https://github.com/TH3-F001/recono-suite.git
+cd recono-suite
+chmod +x install.sh
+./install.sh
 
-#### Subdomain Enumeration:
+## Uninstall:
+cd $HOME/.config/recono-suite
+./uninstall.sh
+
+## Requirements:
+
+### Api Keys:
+- C99
+- Shodan
+- Github
+
+### GoLang Version
+go version go1.21.4 or higher
+
+## Tools Used:
+
+### Subdomain Enumeration:
 - Amass
 - Bbot
 - C99
@@ -22,43 +39,22 @@ found
 - Subdomainizer
 - Waybackurls
 
-## Disclaimer:
-At this time the project and the install process have only been tested on Fedora 27. I do plan to do more testing in the future.
 
-## Install:
+## Disclaimers:
 
-### 0) Install Pre-reqs:
-    pipx
-    go
-    
+### Installation Process Disclaimer
+At this time the project and the install process have only been tested on Garuda Linux but was written with all linux distros in mind. If subfinder doesnt install manually install the latest go version.
+I do plan to do more testing in the future.
 
-### 1) Clone the repository and enter the directory:
-    git clone git@github.com:TH3-F001/recono-suite.git
-    cd recono-suite
+### Recono-Sub Limitations:
+This script utilizes a huge shuffledns wordlist, and as such can take up a lot of time and bandwitdth. It is best used with small domain chunks, which can be changed in the script.
+I am always considering ways to speed this up, and make it more feasible to run recursively.
 
-### 2) Give install.sh executable privileges:
-    chmod +x install.sh
+### A Note On API Keys:
+bbot, amass, and subfinder all have config files in which you can place many different api keys which can help find more hits. 
+Asking the user for these keys, and automatically populating the config files is out of scope of this tool as I want it to be accessible and quick to roll up (say on a collection of cloud machines).
+Even so I strongly recommend that if you use any of these tools you take the time to fill out the API configurations on each one for maximum coverage. 
 
-### 3) Run install.sh (requires python 3.10 or higher):
-    ./install.sh
 
-### 4) Provide your API keys when prompted.
-You'll be prompted for the following API Keys:
-- GitHub
-- Bevigil
-- C99
-- Shodan
-- Censys
 
-### 5) Provide sudo credentials to install dependencies:
-The following shell tools are required to run this tool:
-- amass
-- assetfinder
-- bbot
-- gobuster
-- github-subdomains
-- knockpy
-- shodan
-- subfinder
-- subscraper
-- subdomainizer
+
