@@ -1,0 +1,17 @@
+#!/bin/bash
+
+LIB_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+source "$LIB_SCRIPT_DIR/basic-operations.lib"
+source "$LIB_SCRIPT_DIR/install.lib"
+
+import_config_file() {
+    local CONFIG_FILE="$HOME/.config/recono-suite/config.txt"
+
+    if file_exists "$CONFIG_FILE"; then
+        source "$CONFIG_FILE"
+    else
+        print_error "Config file not found: $CONFIG_FILE"
+        return 1
+    fi
+}

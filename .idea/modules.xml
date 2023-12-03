@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/recono-suite.iml" filepath="$PROJECT_DIR$/.idea/recono-suite.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/recono-shell.iml" filepath="$PROJECT_DIR$/.idea/recono-shell.iml" />
     </modules>
   </component>
 </project>

@@ -1,3 +1,0 @@
-recursive-include wordlists *
-include README.md
-include install.sh
