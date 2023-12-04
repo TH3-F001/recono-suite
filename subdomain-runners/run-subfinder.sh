@@ -29,14 +29,14 @@ echo -e "⚡ Running Subfinder against $DOMAINS..."
 
 mkdir -p "$OUTPUT_DIR"
 
-
-
 HASH=$(hash_value "$DOMAINS,subfinder")
+SUBFINDER_SESSION="subfinder_$HASH"
+
 OUT_FILE="$OUTPUT_DIR/subfinder_$HASH.txt"
 
 CMD="subfinder -d $DOMAINS -all -o $OUT_FILE -max-time 30"
 
-if run_and_indent "$CMD" ; then 
+if tmux_command "$CMD" "$SUBFINDER_SESSION" ; then 
     print_success "Subfinder has completed successfully"
 else 
     print_error "An error occurred while running Subfinder"

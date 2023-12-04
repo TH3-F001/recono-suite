@@ -10,6 +10,7 @@ import_config_file
 DOMAINS=""
 OUTPUT_DIR=""
 active_mode=false
+TIMEOUT_MODIFIER=1
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -39,17 +40,25 @@ TRQPS=10                            # Total Trusted DNS Queries Per Second
 LOG="$LOG_DIR/amass_$OUT_PRE.log"
 mkdir -p "$OUTPUT_DIR"
 
-AMASS_COMMAND="amass enum -d $DOMAINS -dns-qps $DNSQPS -log $LOG -dir $OUTPUT_DIR -silent"
+AMASS_COMMAND="amass enum -d $DOMAINS -dns-qps $DNSQPS -log $LOG -dir $OUTPUT_DIR "
 
 if [ "$active_mode" = true ]; then
     AMASS_COMMAND+=" -active"
+    TIMEOUT_MODIFIER=$(echo "$TIMEOUT_MODIFIER * 1.5" | bc)
 else
     AMASS_COMMAND+=" -passive"
 fi
-
 AMASS_COMMAND+=" -rf $UTRF -rqps $URQPS -trf $TRF -trqps $TRQPS"
+HASH=$(hash_value "$DOMAINS,amass")
+AMASS_SESSION="amass_$HASH"
+declare -a DOM_ARR
+comma_list_to_array "$DOMAINS" DOM_ARR
+DOMAIN_COUNT=${#DOM_ARR[@]}
+TOTAL_TIMEOUT=$(printf "%.0f" $(echo "$DOMAIN_COUNT * 3600 * $TIMEOUT_MODIFIER" | bc))
 
-if run_and_indent "$AMASS_COMMAND"; then
+
+
+if tmux_command_with_timeout "$AMASS_COMMAND" "$TOTAL_TIMEOUT" "$AMASS_SESSION"; then
     print_success "Amass has completed successfully"
 else
     print_error "An error occurred while running Amass"
