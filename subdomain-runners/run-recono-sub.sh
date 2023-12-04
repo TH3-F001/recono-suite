@@ -11,6 +11,7 @@ trap cleanup SIGINT
 DOMAINS_=""
 OUTPUT_DIR_=""
 active_mode_=false
+START_TIME=$(date +%s)
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -73,11 +74,20 @@ while true; do
         fi
     done
 
+    CURRENT_TIME=$(date +%s)
+    ELAPSED_TIME=$(( CURRENT_TIME - START_TIME ))
+    ELAPSED_HOURS=$(( ELAPSED_TIME / 3600 ))
+    ELAPSED_MINUTES=$(( (ELAPSED_TIME % 3600) / 60 ))
+    ELAPSED_SECONDS=$(( ELAPSED_TIME % 60 ))
+
+
     if [ ${#RUNNING_SCRIPTS[@]} -eq 0 ]; then
         echo "All scripts have completed."
         break
     else
         echo "Scripts still running: ${RUNNING_SCRIPTS[*]}"
+        echo "Elapsed time: ${ELAPSED_HOURS}h ${ELAPSED_MINUTES}m ${ELAPSED_SECONDS}s."
+
     fi
 
     sleep 60  # Check every 60 seconds
