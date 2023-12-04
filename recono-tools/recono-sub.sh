@@ -63,7 +63,5 @@ for ((i=0; i<${#_DOMAINS_[@]}; i+=_CHUNK_SIZE_)); do
     process_chunk "$_CHUNK_" "$_OUT_DIR_" "$_ACTIVE_MODE_"
 done
 
-wait
-
 _DOMAINS_=$(file_to_comma_list "$_DOMAIN_FILE_") 
 "$PARSER_DIR/parse-recono-sub.sh" -d "$_DOMAINS_" -i "$_OUT_DIR_" -o "$_OUT_DIR_"
