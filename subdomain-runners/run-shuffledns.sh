@@ -35,7 +35,7 @@ CMDS=()
 for DOMAIN in "${DOMAIN_LIST[@]}"; do
     echo -e "\tRunning against $DOMAIN..."
     OUT_FILE="$OUTPUT_DIR/shuffledns_$DOMAIN.txt"
-    CMD="shuffledns -d $DOMAIN -w $SUBDOMAIN_MASTER_LIST -r $TRUSTED_RESOLVER_FILE -t 1500 -o $OUT_FILE"
+    CMD="shuffledns -d $DOMAIN -w $SUBDOMAIN_MASTER_LIST -r $TRUSTED_RESOLVER_FILE -t 1500 -o $OUT_FILE -silent"
     CMDS+=("$CMD")
 done
 

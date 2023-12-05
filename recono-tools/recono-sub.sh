@@ -21,7 +21,7 @@ import_config_file
 _DOMAIN_FILE_=""
 _OUT_DIR_=""
 _ACTIVE_MODE_=false
-_CHUNK_SIZE_=10  # Adjust this to tune speed-resource availability ratio
+_CHUNK_SIZE_=5  # Adjust this to tune speed-resource availability ratio
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -40,7 +40,6 @@ if ! check_argument "$_DOMAIN_FILE_" || ! check_argument "$_OUT_DIR_"; then
     exit 1
 fi
 
-echo -e "⚡ Running Recono-Sub against domains from $_DOMAIN_FILE_..."
 mkdir -p "$_OUT_DIR_" || { echo "Failed to create directory: $_OUT_DIR_"; exit 1; }
 
 # Function to process chunks of domains
